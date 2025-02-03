@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+import 'login/login_screen.dart'; // Adjust this import if your file structure is different.
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -44,24 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
 class HomeTab extends StatelessWidget {
   const HomeTab({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Welcome Back!',
-              style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 16),
-          _buildQuoteCard(),
-          const SizedBox(height: 24),
-          _buildFeatureGrid(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildQuoteCard() {
     return Card(
       child: Padding(
@@ -73,7 +55,29 @@ class HomeTab extends StatelessWidget {
               style: TextStyle(fontStyle: FontStyle.italic),
             ),
             SizedBox(height: 8),
-            Text('- Virgil', textAlign: TextAlign.right),
+            Text(
+              '- Virgil',
+              textAlign: TextAlign.right,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCard(String title, IconData icon, Color color) {
+    return Card(
+      child: InkWell(
+        onTap: () {},
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: color),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -95,18 +99,22 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(String title, IconData icon, Color color) {
-    return Card(
-      child: InkWell(
-        onTap: () {},
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome Back!',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 16),
+          _buildQuoteCard(),
+          const SizedBox(height: 24),
+          _buildFeatureGrid(),
+        ],
       ),
     );
   }
@@ -114,6 +122,16 @@ class HomeTab extends StatelessWidget {
 
 class ActivitiesTab extends StatelessWidget {
   const ActivitiesTab({Key? key}) : super(key: key);
+
+  Widget _buildActivityTile(String title, String duration, IconData icon) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.blue),
+      title: Text(title),
+      subtitle: Text(duration),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {},
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,20 +145,22 @@ class ActivitiesTab extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildActivityTile(String title, String duration, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.blue),
-      title: Text(title),
-      subtitle: Text(duration),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {},
-    );
-  }
 }
 
 class MeditateTab extends StatelessWidget {
   const MeditateTab({Key? key}) : super(key: key);
+
+  Widget _buildSessionCard(String title, String duration, Color color) {
+    return Card(
+      color: color.withOpacity(0.1),
+      child: ListTile(
+        title: Text(title, style: TextStyle(color: color)),
+        subtitle: Text(duration),
+        trailing: Icon(Icons.play_arrow, color: color),
+        onTap: () {},
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,18 +172,6 @@ class MeditateTab extends StatelessWidget {
         _buildSessionCard('Sleep Better', '15 mins', Colors.purple),
         _buildSessionCard('Morning Focus', '10 mins', Colors.orange),
       ],
-    );
-  }
-
-  Widget _buildSessionCard(String title, String duration, Color color) {
-    return Card(
-      color: color.withOpacity(0.1),
-      child: ListTile(
-        title: Text(title, style: TextStyle(color: color)),
-        subtitle: Text(duration),
-        trailing: Icon(Icons.play_arrow, color: color),
-        onTap: () {},
-      ),
     );
   }
 }
@@ -178,7 +186,10 @@ class ProfileTab extends StatelessWidget {
         const SizedBox(height: 24),
         const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
         const SizedBox(height: 16),
-        Text('User Name', style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          'User Name',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 24),
         ListTile(
           leading: const Icon(Icons.settings),
@@ -190,7 +201,9 @@ class ProfileTab extends StatelessWidget {
           title: const Text('Log Out'),
           onTap: () => Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            MaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
           ),
         ),
       ],
