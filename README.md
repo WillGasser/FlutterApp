@@ -14,8 +14,8 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
 1. **Prerequisites:**  
    - Ensure you have Flutter installed and configured
    - Verify Android Studio installation
-        -- Android SDK
-        -- Android Emulator
+        - Android SDK
+        - Android Emulator
 
 2. **Clone the Repository:**  
    ```bash
@@ -27,6 +27,6 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
     flutter run --no-enable-impeller
 
 # Android Emulation NOTES
-- Use CTRL + <uparrow> or CTRL + <downarrow> to configure your emulator size
+- Use CTRL + uparrow or CTRL + downarrow to configure your emulator size
 - Make sure to use --no-enable-impeller to remove arbitrary emulator logs
 
