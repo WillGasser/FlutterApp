@@ -6,6 +6,8 @@ void main() {
 }
 
 class HealthApp extends StatelessWidget {
+  const HealthApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,6 +23,8 @@ class HealthApp extends StatelessWidget {
 }
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -245,6 +249,8 @@ class _LoginScreenState extends State<LoginScreen>
 }
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -283,6 +289,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class HomeTab extends StatelessWidget {
+  const HomeTab({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -350,6 +358,8 @@ class HomeTab extends StatelessWidget {
 }
 
 class ActivitiesTab extends StatelessWidget {
+  const ActivitiesTab({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -375,6 +385,8 @@ class ActivitiesTab extends StatelessWidget {
 }
 
 class MeditateTab extends StatelessWidget {
+  const MeditateTab({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -402,6 +414,8 @@ class MeditateTab extends StatelessWidget {
 }
 
 class ProfileTab extends StatelessWidget {
+  const ProfileTab({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -430,6 +444,8 @@ class ProfileTab extends StatelessWidget {
 }
 
 class ForgotPasswordScreen extends StatelessWidget {
+  const ForgotPasswordScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
