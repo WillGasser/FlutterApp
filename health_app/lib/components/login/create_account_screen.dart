@@ -22,7 +22,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   void _handleCreateAccount() async {
     String email = _emailController.text;
     String password = _passwordController.text;
-    await createAccount(email, password);
+    await createAccount(context, email, password);
     // Optionally, add UI feedback or navigation after account creation.
   }
 

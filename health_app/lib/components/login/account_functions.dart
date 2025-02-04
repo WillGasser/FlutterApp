@@ -1,55 +1,86 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
-/// Checks whether an account with the provided email already exists.
-/// Returns true if the account exists, false otherwise.
-Future<bool> checkAccount(String email, String password) async {
-  final file = File('lib/user_data/news.json');
+/// Returns the path to the application's documents directory.
+Future<String> get _localPath async {
+  final directory = await getApplicationDocumentsDirectory();
+  return directory.path;
+}
+
+/// Returns a [File] for the users.json file in a user_data folder.
+Future<File> get _localFile async {
+  final path = await _localPath;
+  final userDataDirectory = Directory('$path/user_data');
+  // Ensure the directory exists.
+  if (!await userDataDirectory.exists()) {
+    await userDataDirectory.create(recursive: true);
+  }
+  return File('${userDataDirectory.path}/users.json');
+}
+
+/// Ensures that the given file exists.
+Future<File> ensureFileExists(File file) async {
   if (!await file.exists()) {
-    return false;
+    // Create an empty JSON file (initialized with an empty array).
+    await file.writeAsString("[]", mode: FileMode.write);
   }
-  final content = await file.readAsString();
-  if (content.trim().isEmpty) {
-    return false;
-  }
-  final Map<String, dynamic> data = json.decode(content);
-  final List<dynamic> users = data['users'] ?? [];
+  return file;
+}
 
+/// Adds a new user to the users list and writes the updated list back to the file.
+Future<void> addUser(
+    File userFile, List<dynamic> users, String email, String password) async {
+  users.add({
+    "email": email,
+    "password": password, // Ideally, hash the password before storing it.
+  });
+  await userFile.writeAsString(json.encode(users), mode: FileMode.write);
+}
+
+/// Checks if the users list already contains a user with the given email.
+bool containsUser(List<dynamic> users, String email) {
   for (var user in users) {
-    if (user['email'] == email) {
+    if (user["email"] == email) {
       return true;
     }
   }
   return false;
 }
 
-/// Creates an account by appending the new user (with email and password)
-/// to the JSON file. If the account already exists, it prints an error message.
-Future<void> createAccount(String email, String password) async {
-  if (await checkAccount(email, password)) {
-    print("Error: Account exists");
+/// Creates an account by adding a new user only if the email does not already exist.
+/// Shows confirmation messages using SnackBar.
+Future<void> createAccount(
+    BuildContext context, String email, String password) async {
+  // Get the correct file using path_provider.
+  File userFile = await _localFile;
+  // Ensure the file exists.
+  await ensureFileExists(userFile);
+
+  List<dynamic> users = [];
+
+  // Read the file contents.
+  String fileContent = await userFile.readAsString();
+  if (fileContent.isNotEmpty) {
+    users = json.decode(fileContent) as List<dynamic>;
+  }
+
+  // Check if the user already exists.
+  if (!containsUser(users, email)) {
+    await addUser(userFile, users, email, password);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("User added successfully."),
+        backgroundColor: Colors.green,
+      ),
+    );
   } else {
-    final file = File('lib/user_data/news.json');
-    Map<String, dynamic> data;
-    if (await file.exists()) {
-      final content = await file.readAsString();
-      if (content.trim().isEmpty) {
-        data = {'users': []};
-      } else {
-        data = json.decode(content);
-      }
-    } else {
-      data = {'users': []};
-    }
-    final Map<String, dynamic> newUser = {
-      'email': email,
-      'password': password,
-      // Optionally add more fields, e.g. 'profile_picture'
-    };
-    final List<dynamic> users = data['users'] ?? [];
-    users.add(newUser);
-    data['users'] = users;
-    await file.writeAsString(json.encode(data), flush: true);
-    print("Account created successfully");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("User already exists."),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 }

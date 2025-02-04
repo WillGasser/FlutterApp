@@ -1,9 +1,8 @@
 {
     "users": [
         {
-            "username": "default_user",
-            "password": "defaultpass123",
-            "profile_picture": "assets/images/default_avatar.png"
+            "username": "123",
+            "password": "123"
         }
     ]
 }
