@@ -1,18 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
-/// Returns the path to the application's documents directory.
-Future<String> get _localPath async {
-  final directory = await getApplicationDocumentsDirectory();
-  return directory.path;
-}
+// Define a constant directory path for testing.
+const String kTestBackendDir =
+    r'C:\Users\willb\Desktop\GitHub\FlutterApp\backend';
 
 /// Returns a [File] for the users.json file.
 /// Adjust the folder path as needed.
 Future<File> get _localFile async {
-  final path = await _localPath;
-  final userDataDirectory = Directory('$path/Github/FlutterApp/backend');
+  // Use the constant directory path.
+  final userDataDirectory = Directory(kTestBackendDir);
   // Ensure the directory exists.
   if (!await userDataDirectory.exists()) {
     await userDataDirectory.create(recursive: true);

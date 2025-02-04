@@ -1,18 +1,1 @@
-[
-    {
-        "email": "asdf",
-        "password": "asdf"
-    },
-    {
-        "email": "hello",
-        "password": "45"
-    },
-    {
-        "email": "asd",
-        "password": "asd"
-    },
-    {
-        "email": "asdfasdf",
-        "password": "asdfasdf"
-    }
-]
+[{"email":"asd","password":"asd"}]
