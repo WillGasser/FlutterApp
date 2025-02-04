@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'login/login_screen.dart'; // Adjust this import if your file structure is different.
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class HomeTab extends StatelessWidget {
-  const HomeTab({Key? key}) : super(key: key);
+  const HomeTab({super.key});
 
   Widget _buildQuoteCard() {
     return Card(
@@ -121,7 +121,7 @@ class HomeTab extends StatelessWidget {
 }
 
 class ActivitiesTab extends StatelessWidget {
-  const ActivitiesTab({Key? key}) : super(key: key);
+  const ActivitiesTab({super.key});
 
   Widget _buildActivityTile(String title, String duration, IconData icon) {
     return ListTile(
@@ -148,7 +148,7 @@ class ActivitiesTab extends StatelessWidget {
 }
 
 class MeditateTab extends StatelessWidget {
-  const MeditateTab({Key? key}) : super(key: key);
+  const MeditateTab({super.key});
 
   Widget _buildSessionCard(String title, String duration, Color color) {
     return Card(
@@ -177,7 +177,7 @@ class MeditateTab extends StatelessWidget {
 }
 
 class ProfileTab extends StatelessWidget {
-  const ProfileTab({Key? key}) : super(key: key);
+  const ProfileTab({super.key});
 
   @override
   Widget build(BuildContext context) {

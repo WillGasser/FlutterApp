@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"health-56f14","appId":"1:541468709781:android:7d768c3b07ca0ba78fdc9c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"health-56f14","configurations":{"android":"1:541468709781:android:7d768c3b07ca0ba78fdc9c","ios":"1:541468709781:ios:7459ccb6601384448fdc9c","macos":"1:541468709781:ios:7459ccb6601384448fdc9c","web":"1:541468709781:web:35638a6272166a9c8fdc9c","windows":"1:541468709781:web:5132bf373451d7b48fdc9c"}}}}}}
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "health-56f14",
+                    "appId": "1:541468709781:android:7d768c3b07ca0ba78fdc9c",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "health-56f14",
+                    "configurations": {
+                        "android": "1:541468709781:android:7d768c3b07ca0ba78fdc9c",
+                        "ios": "1:541468709781:ios:7459ccb6601384448fdc9c",
+                        "macos": "1:541468709781:ios:7459ccb6601384448fdc9c",
+                        "web": "1:541468709781:web:35638a6272166a9c8fdc9c",
+                        "windows": "1:541468709781:web:5132bf373451d7b48fdc9c"
+                    }
+                }
+            }
+        }
+    }
+}

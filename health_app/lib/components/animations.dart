@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AnimatedBackground extends StatefulWidget {
   final Widget child;
 
-  const AnimatedBackground({Key? key, required this.child}) : super(key: key);
+  const AnimatedBackground({super.key, required this.child});
 
   @override
   State<AnimatedBackground> createState() => _AnimatedBackgroundState();
