@@ -1,5 +1,0 @@
-Mack you can make your server function through here.
-
-the app I built is all contained within:
-
-/health_app/lib/main.dart
