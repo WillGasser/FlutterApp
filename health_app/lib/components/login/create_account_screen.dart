@@ -19,11 +19,26 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     super.dispose();
   }
 
-  void _handleCreateAccount() async {
+  // This async function now awaits the pure createAccount function.
+  // Once complete, it checks if the widget is still mounted before using the context.
+  Future<void> _handleCreateAccount() async {
     String email = _emailController.text;
     String password = _passwordController.text;
-    await createAccount(context, email, password);
-    // Optionally, add UI feedback or navigation after account creation.
+
+    // Call the pure function to create the account.
+    final String message = await createAccount(email, password);
+
+    // Check if the widget is still mounted before showing any UI feedback.
+    if (!mounted) return;
+
+    // Show a SnackBar with the result.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor:
+            message.contains("success") ? Colors.green : Colors.red,
+      ),
+    );
   }
 
   @override
