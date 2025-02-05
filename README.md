@@ -34,9 +34,9 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    flutterfire configure
    ```
 4. **Run:**
-   ``b
     ```bash
     flutter run
+    ```
 
 # Android Emulation NOTES
 - Use CTRL + uparrow or CTRL + downarrow to configure your emulator size
@@ -47,7 +47,7 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    ```bash
    flutter clean
    flutter pub get
-````
+   ```
 - Before running the app, I reccommend running
 ```bash
    flutter analyze
