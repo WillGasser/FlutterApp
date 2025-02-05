@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login/login_screen.dart'; // Adjust this import if your file structure is different.
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
