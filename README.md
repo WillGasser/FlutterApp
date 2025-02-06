@@ -32,7 +32,7 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    ```bash
    firebase login
    ```
-   ** Optional; I am unsure if this is required for all but I ran these commands**
+   **Try this if firebase isn't working**
    ```bash
    dart pub global activate flutterfire_cli
    flutterfire configure
