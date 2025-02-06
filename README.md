@@ -28,12 +28,16 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    flutter pub get
 
    ```
-   #Optional; I am unsure if this is required for all but I ran these commands
+4. **Login to firebase**
+   ```bash
+   firebase login
+   ```
+   ** Optional; I am unsure if this is required for all but I ran these commands**
    ```bash
    dart pub global activate flutterfire_cli
    flutterfire configure
    ```
-4. **Run:**
+5. **Run:**
     ```bash
     flutter run
     ```
