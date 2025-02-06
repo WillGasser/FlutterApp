@@ -2,12 +2,6 @@
 
 A mental health app built with Flutter designed to promote wellbeing with engaging UI and animations
 
-## Current Structure
-
-- **main.dart**: App entry point and global configuration
-- **login.dart**: Login screen and forgot password functionality
-- **home.dart**: Home screen with tabs for activities, meditation, and profile
-- **animations.dart**: Custom animated background components
 
 ## Getting Started
 
@@ -31,11 +25,6 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
 4. **Login to firebase**
    ```bash
    firebase login
-   ```
-   **Try this if firebase isn't working**
-   ```bash
-   dart pub global activate flutterfire_cli
-   flutterfire configure
    ```
 5. **Run:**
     ```bash
