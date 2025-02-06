@@ -28,15 +28,19 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    flutter pub get
 
    ```
-   #Optional; I am unsure if this is required for all but I ran these commands
+4. **Login to firebase**
+   ```bash
+   firebase login
+   ```
+   **Try this if firebase isn't working**
    ```bash
    dart pub global activate flutterfire_cli
    flutterfire configure
    ```
-4. **Run:**
-   ``b
+5. **Run:**
     ```bash
     flutter run
+    ```
 
 # Android Emulation NOTES
 - Use CTRL + uparrow or CTRL + downarrow to configure your emulator size
@@ -47,7 +51,7 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    ```bash
    flutter clean
    flutter pub get
-````
+   ```
 - Before running the app, I reccommend running
 ```bash
    flutter analyze
