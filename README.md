@@ -2,7 +2,7 @@
 
 A mental health app built with Flutter designed to promote wellbeing with engaging UI and animations
 
-
+**All contents you need to code in are located within lib.**
 ## Getting Started
 
 1. **Prerequisites:**  
