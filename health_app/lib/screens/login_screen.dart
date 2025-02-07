@@ -37,9 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       // Attempt to sign in with Firebase.
-       final authService = MyAuthService();
-       final user = await authService.signInWithEmail(email, password);
-
+      final authService = MyAuthService();
+      final user = await authService.signInWithEmail(email, password);
 
       if (user != null) {
         // If sign in is successful, navigate to the HomeScreen.
@@ -55,6 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
       // Catch and show any errors that occur during sign in.
       _showSnackBar(e.toString());
     }
+  }
+
+  /// Handles guest login by navigating directly to HomeScreen.
+  void _handleGuestLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
   /// Shows a SnackBar with the given message.
@@ -135,23 +142,49 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   // Login Button
-                  ElevatedButton(
-                    onPressed: _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 48.0,
-                        vertical: 12.0,
-                      ),
-                    ),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
+                  Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Expanded(
+      child: ElevatedButton(
+        onPressed: _handleLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blueAccent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(
+            vertical: 12.0,
+          ),
+        ),
+        child: const Text(
+          'Login',
+          style: TextStyle(fontSize: 16, color: Colors.white),
+        ),
+      ),
+    ),
+    const SizedBox(width: 16),
+    Expanded(
+      child: ElevatedButton(
+        onPressed: _handleGuestLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(
+            vertical: 12.0,
+          ),
+        ),
+        child: const Text(
+          'Continue as Guest',
+          style: TextStyle(fontSize: 16, color: Colors.white),
+        ),
+      ),
+    ),
+  ],
+),
+
                   const SizedBox(height: 16),
                   // Navigation for Create Account and Forgot Password.
                   Row(
@@ -184,7 +217,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ForgotPasswordScreen(),
+                              builder: (context) =>
+                                  const ForgotPasswordScreen(),
                             ),
                           );
                         },
