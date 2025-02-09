@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_app/services/auth.dart';
-import 'home_screen.dart';
+import '../home_page.dart';
 import 'create_account_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // If sign in is successful, navigate to the HomeScreen.
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else {
         // If user is null, sign in failed.
@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleGuestLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const HomePage()),
     );
   }
 
