@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:health_app/services/auth.dart';
 import './firebase_options.dart';
 import './screens/login_screen.dart';
 import './home_page.dart'; // Updated import to our new home page
@@ -13,7 +12,7 @@ Future<void> main() async {
   );
   runApp(const GoodMindApp());
 }
-  
+
 class GoodMindApp extends StatelessWidget {
   const GoodMindApp({Key? key}) : super(key: key);
 

@@ -25,37 +25,40 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Display the page corresponding to the selected tab
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.blue, // Color when tab is selected
-        unselectedItemColor: Colors.grey, // Color when tab is not selected
-        backgroundColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.edit_note),
-            label: 'Log',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lightbulb),
-            label: 'CBT',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timeline),
-            label: 'My Journey',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        onTap: (int index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+   return Scaffold(
+  // Display the page corresponding to the selected tab
+  body: _pages[_currentIndex],
+  bottomNavigationBar: BottomNavigationBar(
+    type: BottomNavigationBarType.fixed, // Ensures consistent coloring
+    selectedItemColor: Colors.blue, // Color when tab is selected
+    unselectedItemColor: Colors.grey, // Color when tab is not selected
+    backgroundColor: Colors.white, // Ensures the background remains white
+    currentIndex: _currentIndex, // Ensures proper highlighting
+    items: const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.edit_note),
+        label: 'Log',
       ),
-    );
+      BottomNavigationBarItem(
+        icon: Icon(Icons.lightbulb),
+        label: 'CBT',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.timeline),
+        label: 'My Journey',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.settings),
+        label: 'Settings',
+      ),
+    ],
+    onTap: (int index) {
+      setState(() {
+        _currentIndex = index;
+      });
+    },
+  ),
+);
+
   }
 }

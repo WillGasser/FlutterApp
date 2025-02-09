@@ -41,7 +41,7 @@ class SettingsScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  "Logged in as: ${user!.email}",
+                  "${user.email}",
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -49,35 +49,23 @@ class SettingsScreen extends StatelessWidget {
             // Guest View: Show account options instead of settings
             if (isGuest) ...[
               const Text(
-                "You're using a guest account. Create an account to save your progress.",
+                "You're using a guest account.",
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
-                  },
-                  child: const Text("Create Account"),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      );
-                    },
-                    child: const Text("Return to Login"),
-                  ),
-                ),
-
+       
+              const SizedBox(height: 30),
+               Expanded(
+                 child: ListView(
+                  children:
+              [ListTile(
+                      leading: const Icon(Icons.exit_to_app),
+                      title: const Text('Return'),
+                      onTap: () => _handleLogout(context),
+                    ),
+            ],
+            ),
+            )
             ]
             // Logged-In View: Show standard settings
             else
