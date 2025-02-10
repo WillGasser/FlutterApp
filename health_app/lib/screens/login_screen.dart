@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:health_app/services/auth.dart';
+import 'package:health_app/auth.dart';
 import '../home_page.dart';
 import 'create_account_screen.dart';
 import 'forgot_password_screen.dart';

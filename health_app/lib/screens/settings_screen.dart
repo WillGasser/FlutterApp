@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../theme.dart';
 import 'login_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -25,7 +27,8 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final bool isGuest = user == null; // Check if the user is a guest
+    final bool isGuest = user == null;
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,38 +39,45 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // If the user is logged in, display their email.
             if (!isGuest)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  "${user.email}",
+                  user?.email ?? "Unknown Email",
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-            
-            // Guest View: Show account options instead of settings
             if (isGuest) ...[
               const Text(
                 "You're using a guest account.",
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
-       
               const SizedBox(height: 30),
-               Expanded(
-                 child: ListView(
-                  children:
-              [ListTile(
+              Expanded(
+                child: ListView(
+                  children: [
+
+                      SwitchListTile(
+                      title: const Text("Dark Mode"),
+                      secondary: themeProvider.isDarkMode
+                          ? const Icon(Icons.nightlight_round) // 🌙 Dark Mode
+                          : const Icon(Icons.wb_sunny), // 🌞 Light Mode
+                      value: themeProvider.isDarkMode,
+                      onChanged: (value) {
+                        themeProvider.toggleTheme();
+                      },
+                    ),
+                    
+                    ListTile(
                       leading: const Icon(Icons.exit_to_app),
                       title: const Text('Return'),
                       onTap: () => _handleLogout(context),
                     ),
-            ],
-            ),
-            )
+                  ],
+                ),
+              ),
             ]
-            // Logged-In View: Show standard settings
             else
               Expanded(
                 child: ListView(
@@ -86,6 +96,20 @@ class SettingsScreen extends StatelessWidget {
                       title: Text('Privacy'),
                       trailing: Icon(Icons.arrow_forward_ios),
                     ),
+                    const Divider(),
+
+                    // 🌞🌙 Theme Toggle Switch
+                    SwitchListTile(
+                      title: const Text("Dark Mode"),
+                      secondary: themeProvider.isDarkMode
+                          ? const Icon(Icons.nightlight_round) // 🌙 Dark Mode
+                          : const Icon(Icons.wb_sunny), // 🌞 Light Mode
+                      value: themeProvider.isDarkMode,
+                      onChanged: (value) {
+                        themeProvider.toggleTheme();
+                      },
+                    ),
+
                     const Divider(),
                     ListTile(
                       leading: const Icon(Icons.exit_to_app),

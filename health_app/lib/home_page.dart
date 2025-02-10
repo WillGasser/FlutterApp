@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/CBT_Training.dart';      // Provides ActivityPage widget
-import './screens/my_journey_screen.dart';    // Provides MyJourneyPage widget
+import 'screens/my_journey/my_journey_screen.dart';    // Provides MyJourneyPage widget
 import './screens/settings_screen.dart'; 
 import './screens/thought_log.dart' ;   
 

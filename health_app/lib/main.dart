@@ -1,16 +1,24 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import './firebase_options.dart';
 import './screens/login_screen.dart';
-import './home_page.dart'; // Updated import to our new home page
+import './home_page.dart'; 
+import './theme.dart'; // Import ThemeProvider
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const GoodMindApp());
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(), // Provide global theme state
+      child: const GoodMindApp(),
+    ),
+  );
 }
 
 class GoodMindApp extends StatelessWidget {
@@ -18,11 +26,11 @@ class GoodMindApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'GoodMind',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
       home: const AuthWrapper(), // Show LoginScreen or HomePage based on auth
     );
   }
@@ -48,4 +56,3 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 }
-

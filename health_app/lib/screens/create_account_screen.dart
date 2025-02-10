@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:health_app/services/auth.dart';
+import 'package:health_app/auth.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});

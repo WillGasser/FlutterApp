@@ -31,10 +31,6 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
     return "${now.month}/${now.day}/${now.year}";
   }
 
-  /// Convenience getter to check if the user is a guest.
-  /// (i.e. not logged in)
-  bool get _isGuest => FirebaseAuth.instance.currentUser == null;
-
   /// Starts the 60-second timer.
   void _startTimer() {
     setState(() {
