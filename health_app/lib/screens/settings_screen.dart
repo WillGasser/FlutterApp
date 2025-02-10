@@ -31,9 +31,7 @@ class SettingsScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -43,7 +41,7 @@ class SettingsScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
-                  user?.email ?? "Unknown Email",
+                  user.email ?? "Unknown Email",
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -68,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
                         themeProvider.toggleTheme();
                       },
                     ),
-                    
+
                     ListTile(
                       leading: const Icon(Icons.exit_to_app),
                       title: const Text('Return'),

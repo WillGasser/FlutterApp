@@ -6,9 +6,7 @@ class CBTScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CBT Training'),
-      ),
+   
       body: const Center(
         child: Text(
           'CBT page coming soon!',

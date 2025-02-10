@@ -12,7 +12,7 @@ class MyJourneyScreen extends StatelessWidget {
       length: 3, // Three tabs
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("My Journey"),
+           title: null, // Removes the title
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.edit_note), text: "Thought Logs"),
@@ -20,7 +20,8 @@ class MyJourneyScreen extends StatelessWidget {
               Tab(icon: Icon(Icons.bar_chart), text: "Analytics"),
             ],
           ),
-        ),
+),
+
         body: const TabBarView(
           children: [
             ThoughtLogsTab(), // Thought Logs Tab

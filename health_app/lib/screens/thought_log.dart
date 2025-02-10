@@ -112,9 +112,7 @@ Future<void> _finishLog() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("1 Minute Thought Log"),
-      ),
+     
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
