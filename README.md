@@ -32,8 +32,10 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
     ```
 
 # Android Emulation NOTES
-- Use CTRL + uparrow or CTRL + downarrow to configure your emulator size
-- Make sure to use --no-enable-impeller to remove arbitrary emulator logs
+- Make sure you have an emulator configured in android studio
+  ```bash
+     flutter emulators --launch <emulator id>
+  ```
 
 # Additional notes
 - If you are having trouble with the cache, you can reset by running
