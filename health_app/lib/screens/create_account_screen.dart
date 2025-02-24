@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:health_app/auth.dart';
 import 'login_screen.dart';
