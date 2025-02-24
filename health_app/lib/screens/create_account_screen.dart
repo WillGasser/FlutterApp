@@ -1,6 +1,9 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:health_app/auth.dart';
-
+import 'login_screen.dart';
+import 'package:health_app/home_page.dart';
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
 
@@ -29,6 +32,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       _showErrorDialog("Please fill in all fields.");
       return;
     }
+
+    
+
 
  try {
   // Create an instance of AuthService
@@ -87,39 +93,121 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     );
   }
 
-  @override
+   void _handleGuestLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomePage()),
+    );
+  }
+
+   void _handleLogin() {
+    Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const LoginScreen(),
+          ),
+    );
+  }
+@override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Account")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Email field
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+      appBar: AppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "Welcome!",
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 16),
-            // Password field
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(height: 8),
+              const Text(
+                "Create an account to get started.",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 20),
-            // Create Account button
-            ElevatedButton(
-              onPressed: _handleCreateAccount,
-              child: const Text("Create Account"),
-            ),
-          ],
+              const SizedBox(height: 30),
+              
+              // Email field
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Password field
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Buttons
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _handleCreateAccount,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
+                  child: const Text("Create Account"),
+                ),
+              ),
+              const SizedBox(height: 16),
+         Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: _handleLogin,
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      '|',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _handleGuestLogin,
+                    child: const Text(
+                      "Continue as Guest",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              // Continue as Guest button
+             
+            ],
+          ),
         ),
       ),
     );

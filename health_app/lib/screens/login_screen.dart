@@ -55,15 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _showSnackBar(e.toString());
     }
   }
-
-  /// Handles guest login by navigating directly to HomeScreen.
-  void _handleGuestLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
-    );
-  }
-
   /// Shows a SnackBar with the given message.
   void _showSnackBar(String message) {
     if (!mounted) return;
@@ -90,145 +81,121 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  @override
+   void _CreateAccount() {
+    Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const CreateAccountScreen(),
+          ),
+    );
+  }
+
+  void _ForgotPassword(){
+     Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const ForgotPasswordScreen(),
+          ),
+    );
+  }
+
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // If you have a custom animated background, you can wrap it here.
+      appBar: AppBar(),
       body: Center(
-        child: SingleChildScrollView(
-          child: Card(
-            elevation: 8,
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Welcome to GoodMind',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Email TextField
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Password TextField
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Login Button
-                  Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Expanded(
-      child: ElevatedButton(
-        onPressed: _handleLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blueAccent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(
-            vertical: 12.0,
-          ),
-        ),
-        child: const Text(
-          'Login',
-          style: TextStyle(fontSize: 16, color: Colors.white),
-        ),
-      ),
-    ),
-    const SizedBox(width: 16),
-    Expanded(
-      child: ElevatedButton(
-        onPressed: _handleGuestLogin,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.grey,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.symmetric(
-            vertical: 12.0,
-          ),
-        ),
-        child: const Text(
-          'Continue as Guest',
-          style: TextStyle(fontSize: 16, color: Colors.white),
-        ),
-      ),
-    ),
-  ],
-),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "Welcome Back!",
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Log in to continue.",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
 
-                  const SizedBox(height: 16),
-                  // Navigation for Create Account and Forgot Password.
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CreateAccountScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text('Create Account'),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          '|',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const ForgotPasswordScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text('Forgot Password?'),
-                      ),
-                    ],
+              // Email field
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Password field
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
+                  child: const Text("Login"),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Create Account & Forgot Password buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: _CreateAccount,
+                    child: const Text(
+                      "Create Account",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      '|',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _ForgotPassword,
+                    child: const Text(
+                      "Forgot Password?",
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),

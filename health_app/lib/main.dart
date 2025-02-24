@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import './firebase_options.dart';
-import './screens/login_screen.dart';
+import './screens/create_account_screen.dart';
 import './home_page.dart'; 
 import './theme.dart'; // Import ThemeProvider
 
@@ -51,7 +51,7 @@ class AuthWrapper extends StatelessWidget {
         }
 
         final user = snapshot.data;
-        return user == null ? const LoginScreen() : const HomePage();
+        return user == null ? const CreateAccountScreen() : const HomePage();
       },
     );
   }
