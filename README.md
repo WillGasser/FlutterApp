@@ -2,7 +2,13 @@
 
 A mental health app built with Flutter designed to promote wellbeing with engaging UI and animations
 
-**All contents you need to code in are located within lib.**
+## Current Structure
+
+- **main.dart**: App entry point and global configuration
+- **login.dart**: Login screen and forgot password functionality
+- **home.dart**: Home screen with tabs for activities, meditation, and profile
+- **animations.dart**: Custom animated background components
+
 ## Getting Started
 
 1. **Prerequisites:**  
@@ -26,14 +32,16 @@ A mental health app built with Flutter designed to promote wellbeing with engagi
    ```bash
    firebase login
    ```
+
 5. **Run:**
     ```bash
     flutter run
     ```
 
 # Android Emulation NOTES
-- Use CTRL + uparrow or CTRL + downarrow to configure your emulator size
-- Make sure to use --no-enable-impeller to remove arbitrary emulator logs
+- Create an emulator in Android Studio ( More Actions - > Device Manager)
+- To run an emulator, run 'flutter emulators --launch <emulator id>'.
+
 
 # Additional notes
 - If you are having trouble with the cache, you can reset by running
