@@ -4,8 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import './firebase_options.dart';
 import './screens/create_account_screen.dart';
-import './home_page.dart'; 
-import './theme.dart'; // Import ThemeProvider
+import './screens/login_screen.dart';
+import './home_page.dart';
+import './theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,23 +16,30 @@ Future<void> main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ThemeProvider(), // Provide global theme state
-      child: const GoodMindApp(),
+      create: (context) => ThemeProvider(),
+      child: const HoomApp(),
     ),
   );
 }
 
-class GoodMindApp extends StatelessWidget {
-  const GoodMindApp({Key? key}) : super(key: key);
+class HoomApp extends StatelessWidget {
+  const HoomApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      title: 'GoodMind',
+      title: 'HOOM',
       theme: themeProvider.isDarkMode ? ThemeData.dark() : ThemeData.light(),
-      home: const AuthWrapper(), // Show LoginScreen or HomePage based on auth
+      routes: {
+        // Remove the '/' route
+        '/home': (context) => const HomePage(),
+        '/login': (context) => const LoginScreen(),
+        '/create-account': (context) => const CreateAccountScreen(),
+      },
+      // Keep only the home property
+      home: const AuthWrapper(),
     );
   }
 }
