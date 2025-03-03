@@ -1,7 +1,7 @@
 # health_app
 
 A mental health app built with Flutter designed to promote wellbeing with engaging UI and animations
-
+All flutter contents are located in lib.
 ## Current Structure
 
 - **main.dart**: App entry point and global configuration

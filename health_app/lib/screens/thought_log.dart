@@ -54,53 +54,52 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
     });
   }
 
-Future<void> _finishLog() async {
-  _timer?.cancel();
-  setState(() {
-    _isCompleted = true;
-  });
-
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Login to save your log.")),
-    );
-    return;
-  }
-
-  String userId = user.uid;
-
-  // Reference to user's thought_logs subcollection
-  CollectionReference logsRef = FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('thought_logs');
-
-  try {
-    await logsRef.add({
-      'userId': userId, // Ensure logs are linked to the specific user
-      'timestamp': FieldValue.serverTimestamp(),
-      'logText': _textController.text.trim(),
+  Future<void> _finishLog() async {
+    _timer?.cancel();
+    setState(() {
+      _isCompleted = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Thought log saved.")),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error saving log: ${e.toString()}")),
-    );
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Login to save your log.")),
+      );
+      return;
+    }
+
+    String userId = user.uid;
+
+    // Reference to user's thought_logs subcollection
+    CollectionReference logsRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('thought_logs');
+
+    try {
+      await logsRef.add({
+        'userId': userId, // Ensure logs are linked to the specific user
+        'timestamp': FieldValue.serverTimestamp(),
+        'logText': _textController.text.trim(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Thought log saved.")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving log: ${e.toString()}")),
+      );
+    }
+
+    setState(() {
+      _textController.clear();
+      _isStarted = false;
+      _isCompleted = false;
+      _timeRemaining = 60;
+    });
   }
-
-  setState(() {
-    _textController.clear();
-    _isStarted = false;
-    _isCompleted = false;
-    _timeRemaining = 60;
-  });
-}
-
 
   @override
   void dispose() {
@@ -112,7 +111,14 @@ Future<void> _finishLog() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     
+      appBar: AppBar(
+        title: const Text('Thought Log'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      // Removed the drawer for now to fix the error
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -132,12 +138,11 @@ Future<void> _finishLog() async {
                 ),
               const SizedBox(height: 16),
               // Text field for entering the thought log.
-              // The timer is triggered by the first keystroke.
               Expanded(
                 child: TextField(
                   controller: _textController,
-                  maxLines: null, // Allows for a paragraph of text.
-                  expands: true,  // Fills available space.
+                  maxLines: null,
+                  expands: true,
                   textAlignVertical: TextAlignVertical.top,
                   textAlign: TextAlign.start,
                   decoration: const InputDecoration(
@@ -170,9 +175,26 @@ Future<void> _finishLog() async {
                 ),
               const SizedBox(height: 16),
               // Button for the user to finalize the log.
-              ElevatedButton(
-                onPressed: _finishLog,
-                child: const Text("Complete"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                    ),
+                    child: const Text("Back to Home"),
+                  ),
+                  ElevatedButton(
+                    onPressed: _finishLog,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                    ),
+                    child: const Text("Complete"),
+                  ),
+                ],
               ),
             ],
           ),
