@@ -28,7 +28,7 @@ class SideBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isGuest ? "Guest User" : (user?.email ?? "User"),
+                  isGuest ? "Guest User" : (user.email ?? "User"),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
