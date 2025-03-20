@@ -7,11 +7,11 @@ import 'screens/thought_log.dart';
 import 'screens/CBT_Training.dart';
 import 'screens/my_journey/my_journey_screen.dart';
 import './welcome_overlay.dart';
-
+import 'button_effect.dart';
 class HomePage extends StatefulWidget {
   final bool isNewLogin;
-  
-  const HomePage({Key? key, required this.isNewLogin}) : super(key: key);
+  final String type; 
+  const HomePage({Key? key, required this.isNewLogin, required this.type}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
       });
 
       if (mounted && _showWelcome) {
-        await WelcomeManager.showWelcomeIfNeeded(context);
+        await WelcomeManager.showWelcomeIfNeeded(context, widget.type);
       }
     } catch (e) {
       print('Error initializing app: $e');
@@ -57,9 +57,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
-
     final primaryColor = isDark ? Colors.tealAccent : Colors.blue;
-    final secondaryColor = isDark ? const Color(0xFF2A2D3E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
 
     if (_isLoading) {
@@ -77,105 +75,163 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: const SideBar(),
       body: Center(
+        // Group of buttons appear with fade and slide-up animation.
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildAnimatedCircleButton(
-                  context,
-                  Icons.edit_note,
-                  'Log',
-                  primaryColor,
-                  secondaryColor,
-                  textColor,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ThoughtLogScreen()),
-                  ),
-                  0, // First button animation delay
-                ),
-                const SizedBox(height: 30),
-                _buildAnimatedCircleButton(
-                  context,
-                  Icons.lightbulb,
-                  'CBT',
-                  primaryColor,
-                  secondaryColor,
-                  textColor,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CBTScreen()),
-                  ),
-                  300, // Second button animation delay
-                ),
-                const SizedBox(height: 30),
-                _buildAnimatedCircleButton(
-                  context,
-                  Icons.timeline,
-                  'Journey',
-                  primaryColor,
-                  secondaryColor,
-                  textColor,
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const MyJourneyScreen()),
-                  ),
-                  600, // Third button animation delay
-                ),
-              ],
+            ZoomCircleButton(
+              icon: Icons.edit_note,
+              label: 'Log',
+              primaryColor: primaryColor,
+              textColor: textColor,
+              onPressed: () {
+                      // Get the tapped button's center in global coordinates.
+                      final RenderBox box = context.findRenderObject() as RenderBox;
+                      final Offset center = box.localToGlobal(box.size.center(Offset.zero));
+                      
+                      Navigator.of(context).push(
+                        CircularRevealRoute(
+                          page: const ThoughtLogScreen(),
+                          center: center,
+                          fillColor: primaryColor, // This will be your blue color
+                        ),
+                      );
+                    },
+            ),
+            const SizedBox(height: 30),
+            ZoomCircleButton(
+              icon: Icons.lightbulb,
+              label: 'CBT',
+              primaryColor: primaryColor,
+              textColor: textColor,
+             onPressed: () {
+                        // Get the tapped button's center in global coordinates.
+                        final RenderBox box = context.findRenderObject() as RenderBox;
+                        final Offset center = box.localToGlobal(box.size.center(Offset.zero));
+                        
+                        Navigator.of(context).push(
+                          CircularRevealRoute(
+                            page: const CBTScreen(),
+                            center: center,
+                            fillColor: primaryColor, // This will be your blue color
+                          ),
+                        );
+                      },),
+            const SizedBox(height: 30),
+            ZoomCircleButton(
+              icon: Icons.timeline,
+              label: 'Journey',
+              primaryColor: primaryColor,
+              textColor: textColor,
+             onPressed: () {
+  // Get the tapped button's center in global coordinates.
+                        final RenderBox box = context.findRenderObject() as RenderBox;
+                        final Offset center = box.localToGlobal(box.size.center(Offset.zero));
+                        
+                        Navigator.of(context).push(
+                          CircularRevealRoute(
+                            page: const MyJourneyScreen(),
+                            center: center,
+                            fillColor: primaryColor, // This will be your blue color
+                          ),
+                        );
+                      },
             ),
           ],
         )
-            .animate()
-            .fade(duration: 600.ms) // Fade in effect
-            .slideY(begin: 0.1, end: 0, duration: 800.ms), // Slide up effect
+        .animate()
+        .fade(duration: 600.ms)
+        .slideY(begin: 0.1, end: 0, duration: 800.ms),
       ),
     );
   }
+}
 
-  Widget _buildAnimatedCircleButton(
-    BuildContext context,
-    IconData icon,
-    String label,
-    Color primaryColor,
-    Color secondaryColor,
-    Color textColor,
-    VoidCallback onPressed,
-    int delay,
-  ) {
-    return Column(
-      children: [
-        Material(
-          color: primaryColor,
-          shape: const CircleBorder(),
-          elevation: 4,
-          child: InkWell(
-            onTap: onPressed,
-            customBorder: const CircleBorder(),
+/// ZoomCircleButton is a custom widget that zooms (scales up) when tapped.
+/// Once the zoom animation completes, it navigates to the provided page.
+class ZoomCircleButton extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final Color primaryColor;
+  final Color textColor;
+  final VoidCallback onPressed;
+  
+  const ZoomCircleButton({
+    Key? key,
+    required this.icon,
+    required this.label,
+    required this.primaryColor,
+    required this.textColor,
+    required this.onPressed,
+  }) : super(key: key);
+  
+  @override
+  _ZoomCircleButtonState createState() => _ZoomCircleButtonState();
+}
+
+class _ZoomCircleButtonState extends State<ZoomCircleButton> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  
+  @override
+  void initState(){
+    super.initState();
+    _controller = AnimationController(
+      duration: 30.ms,
+      vsync: this,
+    );
+    // When the zoom animation completes, navigate and then reverse the animation.
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onPressed();
+        _controller.reverse();
+      }
+    });
+  }
+  
+  @override
+  void dispose(){
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        _controller.forward();
+      },
+      child: Column(
+        children: [
+          Material(
+            color: widget.primaryColor,
+            shape: const CircleBorder(),
+            elevation: 4,
             child: Container(
               width: 160,
               height: 160,
               decoration: const BoxDecoration(shape: BoxShape.circle),
               child: Center(
-                child: Icon(icon, size: 72, color: Colors.white),
+                child: Icon(widget.icon, size: 72, color: Colors.white),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          label,
-          style: TextStyle(fontSize: 32, color: textColor, fontWeight: FontWeight.bold),
-        ),
-      ],
-    )
-        .animate()
-        .fade(duration: 500.ms, delay: delay.ms) // Fade in with delay
-        .slideY(begin: 0.3, end: 0, duration: 600.ms, delay: delay.ms) // Slide up
-        .scaleXY(begin: 0.7, end: 1.0, duration: 500.ms, curve: Curves.bounceOut); // Bounce effect
+          const SizedBox(height: 12),
+          Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 32,
+              color: widget.textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ).animate(controller: _controller)
+       .scaleXY(
+         begin: 1.0, 
+         end: 1.2, 
+         duration: 300.ms, 
+         curve: Curves.easeInOut,
+       ),
+    );
   }
 }

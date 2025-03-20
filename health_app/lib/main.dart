@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import './firebase_options.dart';
 import './screens/create_account_screen.dart';
@@ -43,37 +42,8 @@ class HoomApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatefulWidget {
+class AuthWrapper extends StatelessWidget {
   const AuthWrapper({Key? key}) : super(key: key);
-
-  @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
-}
-
-class _AuthWrapperState extends State<AuthWrapper> {
-  bool _isNewLogin = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthEvent();
-  }
-
-  Future<void> _checkAuthEvent() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // Check if the user is being manually authenticated (not auto login)
-    bool isNewLogin = prefs.getBool('isNewLogin') ?? false;
-
-    if (isNewLogin) {
-      setState(() {
-        _isNewLogin = true;
-      });
-
-      // Reset flag after first use so next launches don’t show welcome
-      await prefs.setBool('isNewLogin', false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,14 +59,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
         final user = snapshot.data;
 
         if (user == null) {
-          // User is signing in → Mark this as a new login event
-          SharedPreferences.getInstance().then((prefs) {
-            prefs.setBool('isNewLogin', true);
-          });
+        
           return const CreateAccountScreen();
         }
 
-        return HomePage(isNewLogin: _isNewLogin);
+        return HomePage(isNewLogin: false, type: 'local_user');//local users ignore the welcome overlay 
       },
     );
   }

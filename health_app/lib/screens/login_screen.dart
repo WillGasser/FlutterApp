@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // If sign in is successful, navigate to the HomePage.
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true)),
+          MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'returning_user')),
         );
       } else {
         // If user is null, sign in failed.
@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleGuestLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true)),
+      MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'guest_user')),
     );
   }
 

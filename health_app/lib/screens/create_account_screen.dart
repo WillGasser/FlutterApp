@@ -77,7 +77,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         // Navigate to home page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage(isNewLogin:true)),
+          MaterialPageRoute(builder: (context) => const HomePage(isNewLogin:true, type: "new_user")),
         );
       }
     } catch (e) {
@@ -115,7 +115,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   void _handleGuestLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true)),
+      MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: "guest_user")),
     );
   }
 

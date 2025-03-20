@@ -5,20 +5,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomeOverlay extends StatelessWidget {
   final VoidCallback onDismiss;
-  final bool isFirstTime;
-  final String? lastActivity;
+  final String type;
+
 
   const WelcomeOverlay({
     Key? key,
     required this.onDismiss,
-    required this.isFirstTime,
-    this.lastActivity,
+    required this.type,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // Get the screen size
     final size = MediaQuery.of(context).size;
+    String title_message = "Welcome!";
+    String body_message = "Welcome to HOOM!";
+
+    if (type == 'returning_user') {
+      title_message = "Welcome back!";
+      body_message = "We missed you! Let's continue your journey.";
+    } else if (type == 'new_user') {
+      title_message = "Welcome to HOOM!";
+      body_message = "We're excited to have you here. Let's get started with your mental wellness!";
+    } else if (type == 'guest_user') {
+      title_message = "Welcome, Guest!";
+      body_message = "Explore HOOM as a guest. You can create an account later.";
+    }
+   
+    
 
     return GestureDetector(
       onTap: onDismiss,
@@ -39,7 +53,7 @@ class WelcomeOverlay extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      isFirstTime ? "Welcome to HOOM!" : "Welcome Back!",
+                      title_message,
                       style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
@@ -48,11 +62,7 @@ class WelcomeOverlay extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      isFirstTime
-                          ? "HOOM helps you manage your mental wellness through thought logging, CBT techniques, and progress tracking."
-                          : lastActivity != null
-                              ? "Last time you $lastActivity"
-                              : "Continue your wellness journey with HOOM.",
+                     body_message,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 18,
@@ -134,16 +144,11 @@ class WelcomeManager {
   }
 
   // Show the welcome overlay
-  static Future<void> showWelcomeIfNeeded(BuildContext context) async {
+  static Future<void> showWelcomeIfNeeded(BuildContext context, String type) async {
     try {
-      final isFirstTime = await isFirstTimeUser();
-      String? lastActivity;
-
-      if (!isFirstTime) {
-        lastActivity = await getLastActivity();
-      }
-
+      
       if (!context.mounted) return;
+
 
       // Show overlay
       await showDialog(
@@ -154,15 +159,10 @@ class WelcomeManager {
           onDismiss: () {
             Navigator.of(context).pop();
           },
-          isFirstTime: isFirstTime,
-          lastActivity: lastActivity,
+          type: type,
         ),
       );
 
-      // Mark as returning user after showing first-time message
-      if (isFirstTime) {
-        await markAsReturningUser();
-      }
     } catch (e) {
       // Silently handle any errors to prevent app crashes
       print('Error showing welcome overlay: $e');
