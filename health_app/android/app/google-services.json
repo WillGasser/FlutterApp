@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "541468709781",
+    "firebase_url": "https://health-56f14-default-rtdb.firebaseio.com",
     "project_id": "health-56f14",
     "storage_bucket": "health-56f14.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.health_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "541468709781-14g5svc0jhnfh2fvi6ao8pn8l839t665.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.health_app",
+            "certificate_hash": "e154e8efb80702d239045233ec3af267f6a7d115"
+          }
+        },
+        {
+          "client_id": "541468709781-rvs3hfmiqavfsptgd70b9bk9ikmik79g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDWT6dzWQabMrGd7DjjkJKPiKpIU1bUsy4"
@@ -20,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "541468709781-rvs3hfmiqavfsptgd70b9bk9ikmik79g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "541468709781-lsrdlhs2o22favjqq757psota70hjnfs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.healthApp"
+              }
+            }
+          ]
         }
       }
     }

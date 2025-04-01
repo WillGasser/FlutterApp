@@ -190,7 +190,72 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text("Login"),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+
+// OR divider
+Row(children: <Widget>[
+  Expanded(child: Divider(color: Colors.grey.shade400)),
+  const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    child: Text("OR"),
+  ),
+  Expanded(child: Divider(color: Colors.grey.shade400)),
+]),
+
+const SizedBox(height: 16),
+
+// Continue with Google
+SizedBox(
+  width: double.infinity,
+  child: OutlinedButton.icon(
+    icon: Image.asset('assets/google.png', height: 24),
+    label: const Text("Continue with Google"),
+    onPressed: () async {
+      setState(() => _isLoading = true);
+      try {
+        final user = await MyAuthService().signInWithGoogle();
+        if (user != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'google_user')),
+          );
+        }
+      } catch (e) {
+        _showSnackBar("Google sign-in failed");
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    },
+  ),
+),
+
+const SizedBox(height: 12),
+
+// Continue with Apple
+SizedBox(
+  width: double.infinity,
+  child: OutlinedButton.icon(
+    icon: Icon(Icons.apple, size: 24),
+    label: const Text("Continue with Apple"),
+    onPressed: () async {
+      setState(() => _isLoading = true);
+      try {
+        final user = await MyAuthService().signInWithApple();
+        if (user != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'apple_user')),
+          );
+        }
+      } catch (e) {
+        _showSnackBar("Apple sign-in failed");
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    },
+  ),
+),
+
 
                     // Create Account & Forgot Password buttons
                     Row(

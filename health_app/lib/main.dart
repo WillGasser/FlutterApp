@@ -7,6 +7,7 @@ import './screens/create_account_screen.dart';
 import './screens/login_screen.dart';
 import './home_page.dart';
 import './theme.dart';
+import './screens/video_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,7 +61,7 @@ class AuthWrapper extends StatelessWidget {
 
         if (user == null) {
         
-          return const CreateAccountScreen();
+          return const VideoScreen();
         }
 
         return HomePage(isNewLogin: false, type: 'local_user');//local users ignore the welcome overlay 
