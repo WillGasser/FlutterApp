@@ -12,15 +12,16 @@ class SettingsScreen extends StatelessWidget {
     try {
       await FirebaseAuth.instance.signOut(); // Sign out from Firebase
 
-      // Redirect to LoginScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+      // Redirect to LoginScreen and clear navigation stack
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error logging out: ${e.toString()}")),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error logging out: ${e.toString()}")),
+        );
+      }
     }
   }
 
@@ -31,55 +32,49 @@ class SettingsScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-      
+      appBar: AppBar(
+        title: const Text('Settings'),
+        // Add a back button to return to previous screen
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!isGuest)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  user.email ?? "Unknown Email",
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+            // Display user email or guest status
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                isGuest ? "Guest Account" : (user?.email ?? "Unknown Email"),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            if (isGuest) ...[
-              const Text(
-                "You're using a guest account.",
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              Expanded(
-                child: ListView(
-                  children: [
+            ),
 
-                      SwitchListTile(
-                      title: const Text("Dark Mode"),
-                      secondary: themeProvider.isDarkMode
-                          ? const Icon(Icons.nightlight_round) // 🌙 Dark Mode
-                          : const Icon(Icons.wb_sunny), // 🌞 Light Mode
-                      value: themeProvider.isDarkMode,
-                      onChanged: (value) {
-                        themeProvider.toggleTheme();
-                      },
-                    ),
+            // Settings List
+            Expanded(
+              child: ListView(
+                children: [
+                  // Theme Toggle Switch for all users
+                  SwitchListTile(
+                    title: const Text("Dark Mode"),
+                    secondary: themeProvider.isDarkMode
+                        ? const Icon(Icons.nightlight_round) // 🌙 Dark Mode
+                        : const Icon(Icons.wb_sunny), // 🌞 Light Mode
+                    value: themeProvider.isDarkMode,
+                    onChanged: (value) {
+                      themeProvider.toggleTheme();
+                    },
+                  ),
 
-                    ListTile(
-                      leading: const Icon(Icons.exit_to_app),
-                      title: const Text('Return'),
-                      onTap: () => _handleLogout(context),
-                    ),
-                  ],
-                ),
-              ),
-            ]
-            else
-              Expanded(
-                child: ListView(
-                  children: [
+                  const Divider(),
+
+                  // Show account settings only for registered users
+                  if (!isGuest) ...[
                     const ListTile(
                       title: Text('Account'),
                       trailing: Icon(Icons.arrow_forward_ios),
@@ -95,28 +90,17 @@ class SettingsScreen extends StatelessWidget {
                       trailing: Icon(Icons.arrow_forward_ios),
                     ),
                     const Divider(),
-
-                    // 🌞🌙 Theme Toggle Switch
-                    SwitchListTile(
-                      title: const Text("Dark Mode"),
-                      secondary: themeProvider.isDarkMode
-                          ? const Icon(Icons.nightlight_round) // 🌙 Dark Mode
-                          : const Icon(Icons.wb_sunny), // 🌞 Light Mode
-                      value: themeProvider.isDarkMode,
-                      onChanged: (value) {
-                        themeProvider.toggleTheme();
-                      },
-                    ),
-
-                    const Divider(),
-                    ListTile(
-                      leading: const Icon(Icons.exit_to_app),
-                      title: const Text('Log Out'),
-                      onTap: () => _handleLogout(context),
-                    ),
                   ],
-                ),
+
+                  // Logout button for all users (registered and guests)
+                  ListTile(
+                    leading: const Icon(Icons.exit_to_app),
+                    title: Text(isGuest ? 'Back to Login' : 'Log Out'),
+                    onTap: () => _handleLogout(context),
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       ),

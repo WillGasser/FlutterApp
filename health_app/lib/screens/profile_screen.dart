@@ -11,7 +11,14 @@ class ProfileScreen extends StatelessWidget {
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
+        appBar: AppBar(
+          title: const Text('Profile'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () =>
+                Navigator.of(context).pop(), // Just pop the current screen
+          ),
+        ),
         body: const Center(
           child: Text('Please log in to view your profile'),
         ),
@@ -19,7 +26,14 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () =>
+              Navigator.of(context).pop(), // Just pop the current screen
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -103,6 +117,35 @@ class ProfileScreen extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Separate logout button
+            OutlinedButton.icon(
+              onPressed: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  // Navigate to login screen and remove all previous routes
+                  if (context.mounted) {
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil('/login', (route) => false);
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Error signing out: $e")),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.exit_to_app),
+              label: const Text('Log Out'),
+              style: OutlinedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                foregroundColor: Colors.red,
               ),
             ),
           ],
