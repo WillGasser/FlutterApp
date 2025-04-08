@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../data/user_stats.dart';
 
 /// This screen implements a 1-minute thought log where the timer starts on
 /// the first keystroke. When the user taps "Complete", the log is submitted
@@ -21,9 +22,11 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
   // Seconds remaining for the countdown.
   int _timeRemaining = 60;
   Timer? _timer;
+  bool _isSaving = false;
 
   // Controller for the text field.
   final TextEditingController _textController = TextEditingController();
+  final UserStatsService _statsService = UserStatsService();
 
   /// Returns the current date in MM/DD/YYYY format.
   String get _formattedDate {
@@ -55,6 +58,12 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
   }
 
   Future<void> _finishLog() async {
+    if (_isSaving) return; // Prevent multiple submissions
+
+    setState(() {
+      _isSaving = true;
+    });
+
     _timer?.cancel();
     setState(() {
       _isCompleted = true;
@@ -66,39 +75,65 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login to save your log.")),
       );
+      setState(() {
+        _isSaving = false;
+      });
       return;
     }
 
     String userId = user.uid;
+    final logText = _textController.text.trim();
 
-    // Reference to user's thought_logs subcollection
-    CollectionReference logsRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('thought_logs');
+    if (logText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Please enter some thoughts before saving.")),
+      );
+      setState(() {
+        _isSaving = false;
+      });
+      return;
+    }
 
     try {
+      // Reference to user's thought_logs subcollection
+      CollectionReference logsRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('thought_logs');
+
+      // Add the thought log to Firestore
       await logsRef.add({
-        'userId': userId, // Ensure logs are linked to the specific user
+        'userId': userId,
         'timestamp': FieldValue.serverTimestamp(),
-        'logText': _textController.text.trim(),
+        'logText': logText,
       });
 
+      // Update the user stats
+      await _statsService.updateAllStats();
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Thought log saved.")),
+        const SnackBar(content: Text("Thought log saved successfully!")),
       );
     } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error saving log: ${e.toString()}")),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _textController.clear();
+          _isStarted = false;
+          _isCompleted = false;
+          _timeRemaining = 60;
+          _isSaving = false;
+        });
+      }
     }
-
-    setState(() {
-      _textController.clear();
-      _isStarted = false;
-      _isCompleted = false;
-      _timeRemaining = 60;
-    });
   }
 
   @override
@@ -118,7 +153,6 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      // Removed the drawer for now to fix the error
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -187,12 +221,17 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
                     child: const Text("Back to Home"),
                   ),
                   ElevatedButton(
-                    onPressed: _finishLog,
+                    onPressed: _isSaving ? null : _finishLog,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 12),
                     ),
-                    child: const Text("Complete"),
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2.0))
+                        : const Text("Complete"),
                   ),
                 ],
               ),

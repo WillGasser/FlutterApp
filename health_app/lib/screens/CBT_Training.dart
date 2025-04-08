@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../sidebar.dart';
 import '../theme.dart';
+import '../data/user_stats.dart';
+import '../data/cbt_exercise.dart';
 
 class CBTScreen extends StatefulWidget {
   const CBTScreen({Key? key}) : super(key: key);
@@ -13,11 +17,164 @@ class CBTScreen extends StatefulWidget {
 class _CBTScreenState extends State<CBTScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final UserStatsService _statsService = UserStatsService();
+  bool _isLoading = true;
+  List<CBTExercise> _availableExercises = [];
+  List<CBTExercise> _completedExercises = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadExercises();
+  }
+
+  Future<void> _loadExercises() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Load completed exercises from user's collection
+        final completedSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('cbt_exercises')
+            .orderBy('completedDate', descending: true)
+            .get();
+
+        // Load available exercises from the main exercises collection
+        final availableSnapshot =
+            await FirebaseFirestore.instance.collection('cbt_exercises').get();
+
+        if (mounted) {
+          setState(() {
+            _completedExercises = completedSnapshot.docs
+                .map((doc) => CBTExercise.fromFirestore(doc))
+                .toList();
+
+            _availableExercises = availableSnapshot.docs
+                .map((doc) => CBTExercise.fromFirestore(doc))
+                .toList();
+
+            _isLoading = false;
+          });
+        }
+      } else {
+        // For guest users, just load available exercises
+        final availableSnapshot =
+            await FirebaseFirestore.instance.collection('cbt_exercises').get();
+
+        if (mounted) {
+          setState(() {
+            _availableExercises = availableSnapshot.docs
+                .map((doc) => CBTExercise.fromFirestore(doc))
+                .toList();
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading exercises: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _completeExercise(CBTExercise exercise, {String? notes}) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please log in to track exercises")),
+        );
+        return;
+      }
+
+      // Add to user's completed exercises
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('cbt_exercises')
+          .add({
+        'exerciseId': exercise.id,
+        'title': exercise.title,
+        'description': exercise.description,
+        'type': exercise.type,
+        'durationMinutes': exercise.durationMinutes,
+        'completedDate': FieldValue.serverTimestamp(),
+        'notes': notes,
+      });
+
+      // Update stats
+      await _statsService.logCBTExercise(
+        title: exercise.title,
+        exerciseType: exercise.type,
+        notes: notes,
+      );
+
+      // Refresh exercise lists
+      await _loadExercises();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${exercise.title} completed!")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${e.toString()}")),
+        );
+      }
+    }
+  }
+
+  void _showCompletionDialog(CBTExercise exercise) {
+    final textController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Complete ${exercise.title}"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Add any notes about this exercise:"),
+            const SizedBox(height: 12),
+            TextField(
+              controller: textController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: "Optional notes...",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _completeExercise(exercise, notes: textController.text);
+            },
+            child: const Text("Complete"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -31,6 +188,21 @@ class _CBTScreenState extends State<CBTScreen>
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
     final primaryColor = isDark ? Colors.tealAccent : Colors.blue;
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('CBT Training'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -131,9 +303,17 @@ class _CBTScreenState extends State<CBTScreen>
             '1',
             true, // Unlocked
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Module content coming soon!')),
+              // Implement module completion tracking
+              final exercise = CBTExercise(
+                id: 'module_intro_cbt',
+                title: 'Introduction to CBT',
+                description:
+                    'Foundational concepts and principles of Cognitive Behavioral Therapy',
+                type: CBTExerciseType.general,
+                durationMinutes: 15,
               );
+
+              _showCompletionDialog(exercise);
             },
           ),
 
@@ -144,9 +324,16 @@ class _CBTScreenState extends State<CBTScreen>
             '2',
             true, // Unlocked
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Module content coming soon!')),
+              final exercise = CBTExercise(
+                id: 'module_thought_patterns',
+                title: 'Identifying Thought Patterns',
+                description:
+                    'Learn to recognize common cognitive distortions and thinking patterns',
+                type: CBTExerciseType.cognitiveRestructuring,
+                durationMinutes: 20,
               );
+
+              _showCompletionDialog(exercise);
             },
           ),
 
@@ -155,12 +342,27 @@ class _CBTScreenState extends State<CBTScreen>
             'Challenging Negative Thoughts',
             'Learn to question and reframe thoughts',
             '3',
-            false, // Locked
+            _completedExercises.any((e) => e.title.contains(
+                'Identifying Thought Patterns')), // Unlock based on completion
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Complete previous modules to unlock')),
-              );
+              if (_completedExercises.any(
+                  (e) => e.title.contains('Identifying Thought Patterns'))) {
+                final exercise = CBTExercise(
+                  id: 'module_challenge_thoughts',
+                  title: 'Challenging Negative Thoughts',
+                  description:
+                      'Techniques to question and reframe negative automatic thoughts',
+                  type: CBTExerciseType.cognitiveRestructuring,
+                  durationMinutes: 25,
+                );
+
+                _showCompletionDialog(exercise);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Complete previous modules to unlock')),
+                );
+              }
             },
           ),
 
@@ -169,12 +371,27 @@ class _CBTScreenState extends State<CBTScreen>
             'Behavior Activation',
             'Breaking the cycle of low mood',
             '4',
-            false, // Locked
+            _completedExercises.any((e) => e.title.contains(
+                'Challenging Negative Thoughts')), // Unlock based on completion
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Complete previous modules to unlock')),
-              );
+              if (_completedExercises.any(
+                  (e) => e.title.contains('Challenging Negative Thoughts'))) {
+                final exercise = CBTExercise(
+                  id: 'module_behavior_activation',
+                  title: 'Behavior Activation',
+                  description:
+                      'Break the cycle of low mood by engaging in positive activities',
+                  type: CBTExerciseType.behaviorActivation,
+                  durationMinutes: 30,
+                );
+
+                _showCompletionDialog(exercise);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Complete previous modules to unlock')),
+                );
+              }
             },
           ),
 
@@ -214,9 +431,16 @@ class _CBTScreenState extends State<CBTScreen>
             '10 min',
             isDark ? Colors.teal.shade700 : Colors.teal.shade500,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Exercise coming soon!')),
+              final exercise = CBTExercise(
+                id: 'exercise_thought_record',
+                title: 'Thought Record',
+                description:
+                    'Document and analyze your thoughts to identify patterns',
+                type: CBTExerciseType.thoughtRecord,
+                durationMinutes: 10,
               );
+
+              _showCompletionDialog(exercise);
             },
           ),
 
@@ -228,9 +452,16 @@ class _CBTScreenState extends State<CBTScreen>
             '5 min',
             isDark ? Colors.deepPurple.shade700 : Colors.deepPurple.shade500,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Exercise coming soon!')),
+              final exercise = CBTExercise(
+                id: 'exercise_distortions_quiz',
+                title: 'Cognitive Distortions Quiz',
+                description:
+                    'Test your knowledge of common cognitive distortions',
+                type: CBTExerciseType.quiz,
+                durationMinutes: 5,
               );
+
+              _showCompletionDialog(exercise);
             },
           ),
 
@@ -242,9 +473,16 @@ class _CBTScreenState extends State<CBTScreen>
             '15 min',
             isDark ? Colors.orange.shade700 : Colors.orange.shade600,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Exercise coming soon!')),
+              final exercise = CBTExercise(
+                id: 'exercise_behavioral_experiment',
+                title: 'Behavioral Experiment',
+                description:
+                    'Design and conduct a small experiment to test negative predictions',
+                type: CBTExerciseType.behaviorActivation,
+                durationMinutes: 15,
               );
+
+              _showCompletionDialog(exercise);
             },
           ),
 
@@ -256,9 +494,16 @@ class _CBTScreenState extends State<CBTScreen>
             '8 min',
             isDark ? Colors.green.shade700 : Colors.green.shade600,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Exercise coming soon!')),
+              final exercise = CBTExercise(
+                id: 'exercise_reframing',
+                title: 'Reframing Practice',
+                description:
+                    'Practice transforming negative thoughts into balanced alternatives',
+                type: CBTExerciseType.cognitiveRestructuring,
+                durationMinutes: 8,
               );
+
+              _showCompletionDialog(exercise);
             },
           ),
 
@@ -324,9 +569,16 @@ class _CBTScreenState extends State<CBTScreen>
                   children: [
                     OutlinedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Challenge accepted!')),
+                        final exercise = CBTExercise(
+                          id: 'daily_challenge_distortions',
+                          title: 'Daily Challenge: Identify Distortions',
+                          description:
+                              'Notice and write down three negative thoughts and identify the cognitive distortion in each one',
+                          type: CBTExerciseType.thoughtRecord,
+                          durationMinutes: 10,
                         );
+
+                        _showCompletionDialog(exercise);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
@@ -365,174 +617,201 @@ class _CBTScreenState extends State<CBTScreen>
   // Progress tab with achievements and stats
   Widget _buildProgressTab(
       BuildContext context, bool isDark, Color primaryColor) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Your CBT Journey',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Track your progress and achievements',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isDark ? Colors.white70 : Colors.black54,
-                ),
-          ),
-          const SizedBox(height: 24),
+    return FutureBuilder<UserStats>(
+      future: _statsService.getUserStats(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          // Progress stats
-          Row(
+        final stats = snapshot.data ??
+            UserStats(
+              weeklyActivityData: List.filled(7, 0),
+              lastActiveDate: DateTime.now(),
+            );
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildProgressStat(
-                  context,
-                  'Exercises',
-                  '3',
-                  'Complete',
-                  isDark ? Colors.teal.shade700 : Colors.teal.shade500,
-                ),
+              Text(
+                'Your CBT Journey',
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildProgressStat(
-                  context,
-                  'Concepts',
-                  '7',
-                  'Learned',
-                  isDark ? Colors.purple.shade700 : Colors.purple.shade500,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildProgressStat(
-                  context,
-                  'Streak',
-                  '5',
-                  'Days',
-                  isDark ? Colors.orange.shade700 : Colors.orange.shade600,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildProgressStat(
-                  context,
-                  'Progress',
-                  '25%',
-                  'Complete',
-                  isDark ? Colors.green.shade700 : Colors.green.shade600,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          // Achievements section
-          Text(
-            'Achievements',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-
-          // Achievement cards
-          _buildAchievementCard(
-            context,
-            'First Steps',
-            'Completed your first CBT exercise',
-            Icons.emoji_events,
-            true, // Unlocked
-            Colors.amber,
-          ),
-
-          _buildAchievementCard(
-            context,
-            'Consistent Learner',
-            'Completed 3 days in a row',
-            Icons.calendar_month,
-            true, // Unlocked
-            Colors.teal,
-          ),
-
-          _buildAchievementCard(
-            context,
-            'Thought Master',
-            'Identified 10 cognitive distortions',
-            Icons.psychology,
-            false, // Locked
-            Colors.purple,
-          ),
-
-          _buildAchievementCard(
-            context,
-            'CBT Expert',
-            'Complete all modules in the basic course',
-            Icons.school,
-            false, // Locked
-            Colors.blue,
-          ),
-
-          const SizedBox(height: 32),
-
-          // Next recommended activity
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey[850] : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recommended Next Steps',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 8),
+              Text(
+                'Track your progress and achievements',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
-                    child: Icon(
-                      Icons.assignment,
-                      color: primaryColor,
+              ),
+              const SizedBox(height: 24),
+
+              // Progress stats
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildProgressStat(
+                      context,
+                      'Exercises',
+                      stats.cbtExerciseCount.toString(),
+                      'Complete',
+                      isDark ? Colors.teal.shade700 : Colors.teal.shade500,
                     ),
                   ),
-                  title: const Text('Complete "Identifying Thought Patterns"'),
-                  subtitle: const Text('Module 2 • 15 minutes'),
-                  trailing: ElevatedButton(
-                    onPressed: () {
-                      _tabController.animateTo(0); // Switch to Learn tab
-                    },
-                    child: const Text('Start'),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildProgressStat(
+                      context,
+                      'Concepts',
+                      _completedExercises
+                          .where((e) => e.type == CBTExerciseType.general)
+                          .length
+                          .toString(),
+                      'Learned',
+                      isDark ? Colors.purple.shade700 : Colors.purple.shade500,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                ],
+              ),
 
-          const SizedBox(height: 40),
-        ],
-      ),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildProgressStat(
+                      context,
+                      'Streak',
+                      stats.daysStreak.toString(),
+                      'Days',
+                      isDark ? Colors.orange.shade700 : Colors.orange.shade600,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildProgressStat(
+                      context,
+                      'Progress',
+                      '${(_completedExercises.length * 100 / (_availableExercises.length > 0 ? _availableExercises.length : 10)).round()}%',
+                      'Complete',
+                      isDark ? Colors.green.shade700 : Colors.green.shade600,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              // Achievements section
+              Text(
+                'Achievements',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+
+              // Achievement cards
+              _buildAchievementCard(
+                context,
+                'First Steps',
+                'Completed your first CBT exercise',
+                Icons.emoji_events,
+                stats.cbtExerciseCount >
+                    0, // Unlocked if at least one exercise is completed
+                Colors.amber,
+              ),
+
+              _buildAchievementCard(
+                context,
+                'Consistent Learner',
+                'Completed 3 days in a row',
+                Icons.calendar_month,
+                stats.daysStreak >= 3, // Unlocked if streak is at least 3 days
+                Colors.teal,
+              ),
+
+              _buildAchievementCard(
+                context,
+                'Thought Master',
+                'Identified 10 cognitive distortions',
+                Icons.psychology,
+                _completedExercises
+                        .where((e) =>
+                            e.type == CBTExerciseType.cognitiveRestructuring)
+                        .length >=
+                    10,
+                Colors.purple,
+              ),
+
+              _buildAchievementCard(
+                context,
+                'CBT Expert',
+                'Complete all modules in the basic course',
+                Icons.school,
+                _completedExercises
+                        .where((e) => e.title.contains('Module'))
+                        .length >=
+                    4,
+                Colors.blue,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Next recommended activity
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[850] : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Recommended Next Steps',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.assignment,
+                          color: primaryColor,
+                        ),
+                      ),
+                      title:
+                          const Text('Complete "Identifying Thought Patterns"'),
+                      subtitle: const Text('Module 2 • 15 minutes'),
+                      trailing: ElevatedButton(
+                        onPressed: () {
+                          _tabController.animateTo(0); // Switch to Learn tab
+                        },
+                        child: const Text('Start'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -563,9 +842,16 @@ class _CBTScreenState extends State<CBTScreen>
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Concept details coming soon!')),
+            // Mark concept as learned
+            final exercise = CBTExercise(
+              id: 'concept_${title.toLowerCase().replaceAll(' ', '_')}',
+              title: 'Concept: $title',
+              description: description,
+              type: CBTExerciseType.general,
+              durationMinutes: 5,
             );
+
+            _showCompletionDialog(exercise);
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -630,6 +916,7 @@ class _CBTScreenState extends State<CBTScreen>
     VoidCallback onTap,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCompleted = _completedExercises.any((e) => e.title.contains(title));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -659,18 +946,22 @@ class _CBTScreenState extends State<CBTScreen>
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isUnlocked
-                        ? (isDark ? Colors.teal : Colors.blue)
+                        ? (isCompleted
+                            ? Colors.green
+                            : (isDark ? Colors.teal : Colors.blue))
                         : Colors.grey,
                     shape: BoxShape.circle,
                   ),
-                  child: Text(
-                    number,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  child: isCompleted
+                      ? const Icon(Icons.check, color: Colors.white, size: 24)
+                      : Text(
+                          number,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -701,10 +992,16 @@ class _CBTScreenState extends State<CBTScreen>
                   ),
                 ),
                 Icon(
-                  isUnlocked ? Icons.play_circle_outline : Icons.lock_outline,
-                  color: isUnlocked
-                      ? (isDark ? Colors.teal : Colors.blue)
-                      : Colors.grey,
+                  isCompleted
+                      ? Icons.check_circle
+                      : (isUnlocked
+                          ? Icons.play_circle_outline
+                          : Icons.lock_outline),
+                  color: isCompleted
+                      ? Colors.green
+                      : (isUnlocked
+                          ? (isDark ? Colors.teal : Colors.blue)
+                          : Colors.grey),
                   size: 24,
                 ),
               ],
@@ -726,6 +1023,7 @@ class _CBTScreenState extends State<CBTScreen>
     VoidCallback onTap,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCompleted = _completedExercises.any((e) => e.title.contains(title));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -756,8 +1054,8 @@ class _CBTScreenState extends State<CBTScreen>
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    icon,
-                    color: color,
+                    isCompleted ? Icons.check : icon,
+                    color: isCompleted ? Colors.green : color,
                     size: 28,
                   ),
                 ),

@@ -13,9 +13,8 @@ class SideBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final bool isGuest = user == null;
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
-    final primaryColor = isDark ? Colors.tealAccent : Colors.blue;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Drawer(
       elevation: 16.0,
@@ -27,59 +26,78 @@ class SideBar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          DrawerHeader(
+          // Replace standard DrawerHeader with a custom header container
+          // to fix the overflow issue
+          Container(
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isDark
-                    ? [Colors.teal.shade700, Colors.teal.shade900]
-                    : [Colors.blue.shade500, Colors.blue.shade700],
+                colors: [
+                  colorScheme.primary,
+                  colorScheme.primaryContainer ??
+                      colorScheme.primary.withOpacity(0.7)
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white70, width: 2),
-                  ),
-                  child: const Icon(
-                    Icons.account_circle,
-                    size: 60,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  isGuest ? "Guest User" : (user?.email ?? "User"),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (!isGuest)
-                  Chip(
-                    label: const Text('Active'),
-                    backgroundColor: Colors.green.withOpacity(0.3),
-                    labelStyle: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                mainAxisSize:
+                    MainAxisSize.min, // This ensures it takes only needed space
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 8), // Add some padding at the top
+                  Container(
+                    width: 75, // Slightly smaller to save space
+                    height: 75, // Slightly smaller to save space
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white70, width: 2),
                     ),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
+                    child: const Icon(
+                      Icons.account_circle,
+                      size: 55, // Slightly smaller icon
+                      color: Colors.white,
+                    ),
                   ),
-              ],
+                  const SizedBox(height: 8), // Reduced space
+                  Text(
+                    isGuest ? "Guest User" : (user?.email ?? "User"),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow:
+                        TextOverflow.ellipsis, // Handles long emails gracefully
+                  ),
+                  if (!isGuest)
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 4.0), // Reduced padding
+                      child: Chip(
+                        label: const Text('Active'),
+                        backgroundColor: Colors.green.withOpacity(0.3),
+                        labelStyle: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero, // Minimizes internal padding
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           Expanded(
             child: Container(
-              color: isDark ? Colors.grey[900] : Colors.grey[50],
+              color: theme.scaffoldBackgroundColor,
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
@@ -95,7 +113,6 @@ class SideBar extends StatelessWidget {
                             context, '/', (route) => false);
                       }
                     },
-                    primaryColor,
                   ),
                   _buildListTile(
                     context,
@@ -110,7 +127,6 @@ class SideBar extends StatelessWidget {
                         ),
                       );
                     },
-                    primaryColor,
                   ),
                   if (!isGuest)
                     _buildListTile(
@@ -126,7 +142,6 @@ class SideBar extends StatelessWidget {
                           ),
                         );
                       },
-                      primaryColor,
                     ),
                   _buildListTile(
                     context,
@@ -141,7 +156,6 @@ class SideBar extends StatelessWidget {
                         ),
                       );
                     },
-                    primaryColor,
                   ),
                   const Divider(),
                   _buildListTile(
@@ -156,7 +170,6 @@ class SideBar extends StatelessWidget {
                         ),
                       );
                     },
-                    primaryColor,
                   ),
                   _buildListTile(
                     context,
@@ -166,7 +179,6 @@ class SideBar extends StatelessWidget {
                       Navigator.pop(context); // Close the drawer
                       _showAboutDialog(context);
                     },
-                    primaryColor,
                   ),
                 ],
               ),
@@ -175,16 +187,16 @@ class SideBar extends StatelessWidget {
 
           // Logout button at the bottom
           Container(
-            color: isDark ? Colors.grey[850] : Colors.white,
+            color: theme.cardColor,
             child: ListTile(
               leading: Icon(
                 Icons.exit_to_app,
-                color: isDark ? Colors.redAccent : Colors.red,
+                color: Colors.red,
               ),
               title: Text(
                 isGuest ? 'Back to Login' : 'Log Out',
                 style: TextStyle(
-                  color: isDark ? Colors.redAccent : Colors.red,
+                  color: Colors.red,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -200,12 +212,12 @@ class SideBar extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             alignment: Alignment.center,
-            color: isDark ? Colors.grey[850] : Colors.white,
+            color: theme.cardColor,
             child: Text(
               'HOOM v1.0.0',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: theme.textTheme.bodySmall?.color,
               ),
             ),
           ),
@@ -220,34 +232,31 @@ class SideBar extends StatelessWidget {
     String title,
     IconData icon,
     VoidCallback onTap,
-    Color primaryColor,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return ListTile(
       leading: Icon(
         icon,
-        color: primaryColor,
+        color: theme.colorScheme.primary,
       ),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
+        style: theme.textTheme.titleMedium,
       ),
       onTap: onTap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      horizontalTitleGap: 0,
-      minLeadingWidth: 20,
+      horizontalTitleGap: 12, // Added space between icon and text
+      minLeadingWidth: 24, // Slightly increased for better spacing
     );
   }
 
   // Show about dialog
   void _showAboutDialog(BuildContext context) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (context) => AboutDialog(
@@ -257,7 +266,7 @@ class SideBar extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
+            color: theme.colorScheme.primary,
             shape: BoxShape.circle,
           ),
           child: const Icon(

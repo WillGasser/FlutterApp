@@ -13,33 +13,33 @@ class ThemeProvider extends ChangeNotifier {
   // Get the currently active theme
   ThemeData get currentTheme => _isDarkMode ? darkTheme : lightTheme;
 
-  // Light theme
+  // Light theme - using the lighter sage greens
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    primaryColor: Colors.blue,
-    primaryColorLight: Colors.blue.shade300,
-    primaryColorDark: Colors.blue.shade800,
-    scaffoldBackgroundColor: Colors.grey[100],
+    primaryColor: Color(0xFFB5BBA1), // Light sage green (top color)
+    primaryColorLight: Color(0xFFC5CBBB), // Lighter version
+    primaryColorDark: Color(0xFF9CA38A), // Darker version
+    scaffoldBackgroundColor: Color(0xFFF5F5F0),
     cardColor: Colors.white,
     brightness: Brightness.light,
     colorScheme: ColorScheme.light(
-      primary: Colors.blue,
-      secondary: Colors.teal,
-      tertiary: Colors.purple.shade300,
-      background: Colors.grey[100]!,
+      primary: Color(0xFFB5BBA1), // Light sage green
+      secondary: Color(0xFFA7AE97), // Second sage green
+      tertiary: Color(0xFFB3AC8C), // Tan color (fourth color)
+      background: Color(0xFFF5F5F0),
       surface: Colors.white,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       elevation: 0,
-      backgroundColor: Colors.blue,
+      backgroundColor: Color(0xFFB5BBA1),
       foregroundColor: Colors.white,
       centerTitle: true,
-      titleTextStyle: TextStyle(
+      titleTextStyle: const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      iconTheme: IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: Colors.white),
     ),
     cardTheme: CardTheme(
       elevation: 2,
@@ -50,7 +50,7 @@ class ThemeProvider extends ChangeNotifier {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFFB5BBA1),
         elevation: 2,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
@@ -64,8 +64,8 @@ class ThemeProvider extends ChangeNotifier {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.blue,
-        side: const BorderSide(color: Colors.blue, width: 1.5),
+        foregroundColor: Color(0xFFB5BBA1),
+        side: BorderSide(color: Color(0xFFB5BBA1), width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -78,7 +78,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: Colors.blue,
+        foregroundColor: Color(0xFFB5BBA1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -101,7 +101,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.blue, width: 2),
+        borderSide: BorderSide(color: Color(0xFFB5BBA1), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -116,7 +116,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
-      selectedItemColor: Colors.blue,
+      selectedItemColor: Color(0xFFB5BBA1),
       unselectedItemColor: Colors.grey[600],
       selectedLabelStyle:
           const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
@@ -155,25 +155,25 @@ class ThemeProvider extends ChangeNotifier {
     ),
   );
 
-  // Dark theme
+  // Dark theme - using the olive green and brown tones
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
-    primaryColor: Colors.tealAccent,
-    primaryColorLight: Colors.tealAccent.shade100,
-    primaryColorDark: Colors.teal.shade700,
-    scaffoldBackgroundColor: Colors.grey[900],
-    cardColor: Colors.grey[850],
+    primaryColor: Color(0xFF5B612E), // Olive green (middle color)
+    primaryColorLight: Color(0xFF6E7439), // Lighter version
+    primaryColorDark: Color(0xFF494F25), // Darker version
+    scaffoldBackgroundColor: Color(0xFF2A2A25),
+    cardColor: Color(0xFF353530),
     brightness: Brightness.dark,
     colorScheme: ColorScheme.dark(
-      primary: Colors.tealAccent,
-      secondary: Colors.deepPurpleAccent,
-      tertiary: Colors.amber,
-      background: Colors.grey[900]!,
-      surface: Colors.grey[850]!,
+      primary: Color(0xFF5B612E), // Olive green
+      secondary: Color(0xFFB3AC8C), // Tan/light brown (fourth color)
+      tertiary: Color(0xFF9E967A), // Medium brown (bottom color)
+      background: Color(0xFF2A2A25),
+      surface: Color(0xFF353530),
     ),
     appBarTheme: AppBarTheme(
       elevation: 0,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Color(0xFF2A2A25),
       foregroundColor: Colors.white,
       centerTitle: true,
       titleTextStyle: const TextStyle(
@@ -185,15 +185,15 @@ class ThemeProvider extends ChangeNotifier {
     ),
     cardTheme: CardTheme(
       elevation: 4,
-      color: Colors.grey[850],
+      color: Color(0xFF353530),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.tealAccent,
+        foregroundColor: Colors.white,
+        backgroundColor: Color(0xFF5B612E),
         elevation: 2,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
@@ -207,8 +207,8 @@ class ThemeProvider extends ChangeNotifier {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.tealAccent,
-        side: const BorderSide(color: Colors.tealAccent, width: 1.5),
+        foregroundColor: Color(0xFFB3AC8C),
+        side: BorderSide(color: Color(0xFFB3AC8C), width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -221,7 +221,7 @@ class ThemeProvider extends ChangeNotifier {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: Colors.tealAccent,
+        foregroundColor: Color(0xFFB3AC8C),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -233,18 +233,18 @@ class ThemeProvider extends ChangeNotifier {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.grey[800],
+      fillColor: Color(0xFF3A3A35),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[700]!),
+        borderSide: BorderSide(color: Color(0xFF4A4A45)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.tealAccent, width: 2),
+        borderSide: BorderSide(color: Color(0xFFB3AC8C), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -253,13 +253,13 @@ class ThemeProvider extends ChangeNotifier {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
     dividerTheme: DividerThemeData(
-      color: Colors.grey[700],
+      color: Color(0xFF4A4A45),
       thickness: 1,
       space: 32,
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Colors.grey[850],
-      selectedItemColor: Colors.tealAccent,
+      backgroundColor: Color(0xFF353530),
+      selectedItemColor: Color(0xFFB3AC8C),
       unselectedItemColor: Colors.grey[500],
       selectedLabelStyle:
           const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
@@ -286,7 +286,7 @@ class ThemeProvider extends ChangeNotifier {
       bodySmall: TextStyle(color: Colors.white70),
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Color(0xFF2A2A25),
       contentTextStyle: const TextStyle(color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),

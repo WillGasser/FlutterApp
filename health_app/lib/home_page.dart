@@ -8,6 +8,7 @@ import 'sidebar.dart';
 import 'screens/thought_log.dart';
 import 'screens/CBT_Training.dart';
 import 'welcome_overlay.dart';
+import 'data/user_stats.dart';
 
 class HomePage extends StatefulWidget {
   final bool isNewLogin;
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage>
   bool _isLoading = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  final UserStatsService _statsService = UserStatsService();
 
   // Data for charts and metrics
   int _thoughtLogCount = 0;
@@ -69,6 +71,9 @@ class _HomePageState extends State<HomePage>
       if (widget.isNewLogin) {
         print('Showing welcome overlay for new login.');
         await WelcomeManager.showWelcomeIfNeeded(context, widget.type);
+
+        // Update the user's login streak
+        await _statsService.updateLoginStreak();
       }
 
       // Fetch user data
@@ -96,30 +101,22 @@ class _HomePageState extends State<HomePage>
   Future<void> _fetchUserData() async {
     final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) {
-      // Generate mock data for guest users
-      _generateMockData();
-      return;
-    }
-
     try {
-      // Fetch thought log data
-      final thoughtLogsSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('thought_logs')
-          .get();
+      if (user == null) {
+        // Generate mock data for guest users
+        _generateMockData();
+        return;
+      }
 
-      _thoughtLogCount = thoughtLogsSnapshot.docs.length;
+      // Update all stats and get the latest values
+      final stats = await _statsService.updateAllStats();
 
-      // Calculate days streak
-      _calculateDaysStreak(thoughtLogsSnapshot.docs);
-
-      // Generate weekly activity data
-      _generateWeeklyActivityData(thoughtLogsSnapshot.docs);
-
-      // For now, CBT exercises are mock data
-      _cbtExerciseCount = 3;
+      setState(() {
+        _thoughtLogCount = stats.thoughtLogCount;
+        _cbtExerciseCount = stats.cbtExerciseCount;
+        _daysStreak = stats.daysStreak;
+        _weeklyActivityData = stats.weeklyActivityData;
+      });
     } catch (e) {
       print('Error fetching user data: $e');
       // Fallback to mock data if there's an error
@@ -127,115 +124,18 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  // Calculate consecutive days with entries
-  void _calculateDaysStreak(List<QueryDocumentSnapshot> logs) {
-    if (logs.isEmpty) {
-      _daysStreak = 0;
-      return;
-    }
-
-    // Sort logs by timestamp in descending order
-    logs.sort((a, b) {
-      final aTimestamp = a['timestamp'] as Timestamp;
-      final bTimestamp = b['timestamp'] as Timestamp;
-      return bTimestamp.compareTo(aTimestamp);
-    });
-
-    int streak = 1;
-    DateTime? lastDate = logs.first['timestamp']?.toDate();
-    if (lastDate == null) {
-      _daysStreak = 0;
-      return;
-    }
-
-    // Check if the most recent log is from today or yesterday
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final logDay = DateTime(lastDate.year, lastDate.month, lastDate.day);
-
-    if (logDay.isBefore(today.subtract(const Duration(days: 1)))) {
-      // The most recent log is older than yesterday, so streak is 0
-      _daysStreak = 0;
-      return;
-    }
-
-    // Calculate streak by checking consecutive days
-    DateTime previousDay = logDay;
-
-    for (int i = 1; i < logs.length; i++) {
-      final timestamp = logs[i]['timestamp'] as Timestamp?;
-      if (timestamp == null) continue;
-
-      final currentLogDay = DateTime(
-        timestamp.toDate().year,
-        timestamp.toDate().month,
-        timestamp.toDate().day,
-      );
-
-      // Check if this log is from the day before the previous log
-      final expectedPreviousDay = DateTime(
-        previousDay.year,
-        previousDay.month,
-        previousDay.day - 1,
-      );
-
-      if (currentLogDay.isAtSameMomentAs(expectedPreviousDay)) {
-        streak++;
-        previousDay = currentLogDay;
-      } else if (currentLogDay.isAtSameMomentAs(previousDay)) {
-        // Same day, continue checking
-        continue;
-      } else {
-        // Streak is broken
-        break;
-      }
-    }
-
-    _daysStreak = streak;
-  }
-
-  // Generate weekly activity data for chart
-  void _generateWeeklyActivityData(List<QueryDocumentSnapshot> logs) {
-    final now = DateTime.now();
-    final weekDays = List<DateTime>.generate(7, (i) {
-      return DateTime(now.year, now.month, now.day - i);
-    }).reversed.toList();
-
-    // Count logs per day
-    final counts = List<int>.filled(7, 0);
-
-    for (final log in logs) {
-      final timestamp = log['timestamp'] as Timestamp?;
-      if (timestamp == null) continue;
-
-      final logDate = timestamp.toDate();
-      final logDay = DateTime(logDate.year, logDate.month, logDate.day);
-
-      for (int i = 0; i < weekDays.length; i++) {
-        final weekDay = weekDays[i];
-        if (logDay.year == weekDay.year &&
-            logDay.month == weekDay.month &&
-            logDay.day == weekDay.day) {
-          counts[i]++;
-          break;
-        }
-      }
-    }
-
-    // Set data for the chart
-    _weeklyActivityData = counts;
-  }
-
   // Generate mock data for demos and guest users
   void _generateMockData() {
-    _thoughtLogCount = 12;
-    _cbtExerciseCount = 5;
-    _daysStreak = 3;
+    setState(() {
+      _thoughtLogCount = 0;
+      _cbtExerciseCount = 0;
+      _daysStreak = 0;
 
-    // Generate random weekly activity data
-    final random = DateTime.now().millisecondsSinceEpoch;
-    _weeklyActivityData = List.generate(7, (i) {
-      return (((random + i * 17) % 5) + 1);
+      // Generate random weekly activity data
+      final random = DateTime.now().millisecondsSinceEpoch;
+      _weeklyActivityData = List.generate(7, (i) {
+        return (((random + i * 17) % 3)); // Less random activity for guest mode
+      });
     });
   }
 
@@ -250,41 +150,43 @@ class _HomePageState extends State<HomePage>
     // Navigate to the appropriate screen based on the selected index.
     if (index == 0) {
       // Navigate to CBT training screen.
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const CBTScreen()),
-      );
+      Navigator.of(context)
+          .push(
+            MaterialPageRoute(builder: (context) => const CBTScreen()),
+          )
+          .then((_) => _fetchUserData()); // Refresh data when returning
     } else if (index == 2) {
       // Navigate to Thought log screen.
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const ThoughtLogScreen()),
-      );
+      Navigator.of(context)
+          .push(
+            MaterialPageRoute(builder: (context) => const ThoughtLogScreen()),
+          )
+          .then((_) => _fetchUserData()); // Refresh data when returning
     }
     // If index == 1, it's Home, so we remain on the current page.
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
-    final primaryColor = isDark ? Colors.tealAccent : Colors.blue;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final cardColor = isDark ? Colors.grey[850] : Colors.white;
-    final backgroundColor = isDark ? Colors.grey[900] : Colors.grey[100];
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: backgroundColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Center(
-          child: CircularProgressIndicator(color: primaryColor),
+          child: CircularProgressIndicator(color: colorScheme.primary),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: isDark ? Colors.grey[900] : primaryColor,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
@@ -314,315 +216,322 @@ class _HomePageState extends State<HomePage>
       drawer: const SideBar(),
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome section
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? [Colors.teal.shade700, Colors.teal.shade900]
-                        : [Colors.blue.shade500, Colors.blue.shade700],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+        child: RefreshIndicator(
+          onRefresh: _fetchUserData,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Welcome section
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [
+                              colorScheme.primary,
+                              colorScheme.primaryContainer ??
+                                  colorScheme.primary.withOpacity(0.7)
+                            ]
+                          : [
+                              colorScheme.primary,
+                              colorScheme.primaryContainer ??
+                                  colorScheme.primary.withOpacity(0.7)
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Welcome back',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'How are you today?',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: isDark ? 0.5 : 0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ThoughtLogScreen(),
+                                      ),
+                                    )
+                                    .then((_) => _fetchUserData());
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: const BorderSide(color: Colors.white60),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Text('Start Thought Log'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.psychology_outlined,
+                          size: 50,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Quick stats
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        'Thought Logs',
+                        _thoughtLogCount.toString(),
+                        Icons.edit_note,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        'CBT Exercises',
+                        _cbtExerciseCount.toString(),
+                        Icons.lightbulb_outline,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        'Day Streak',
+                        _daysStreak.toString(),
+                        Icons.local_fire_department_outlined,
+                        isStreak: true,
+                      ),
                     ),
                   ],
                 ),
-                child: Row(
+
+                const SizedBox(height: 24),
+
+                // Weekly activity chart section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Weekly Activity',
+                            style: theme.textTheme.titleLarge,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color:
+                                  isDark ? Colors.grey[800] : Colors.grey[200],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'This Week',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: theme.textTheme.bodySmall?.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 180,
+                        child: _buildSimpleWeeklyActivityChart(context),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Features quick access
+                Text(
+                  'Quick Access',
+                  style: theme.textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+
+                Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Welcome back',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'How are you today?',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: isDark ? 0.5 : 0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
+                      child: _buildFeatureButton(
+                        context,
+                        'Record Thoughts',
+                        Icons.edit_note,
+                        colorScheme.primary,
+                        () {
+                          Navigator.of(context)
+                              .push(
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       const ThoughtLogScreen(),
                                 ),
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white60),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: const Text('Start Thought Log'),
-                          ),
-                        ],
+                              )
+                              .then((_) => _fetchUserData());
+                        },
                       ),
                     ),
-                    const SizedBox(width: 20),
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.psychology_outlined,
-                        size: 50,
-                        color: Colors.white.withOpacity(0.9),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildFeatureButton(
+                        context,
+                        'CBT Training',
+                        Icons.lightbulb_outline,
+                        colorScheme.secondary,
+                        () {
+                          Navigator.of(context)
+                              .push(
+                                MaterialPageRoute(
+                                  builder: (context) => const CBTScreen(),
+                                ),
+                              )
+                              .then((_) => _fetchUserData());
+                        },
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-              // Quick stats
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'Thought Logs',
-                      _thoughtLogCount.toString(),
-                      Icons.edit_note,
-                      cardColor!,
-                      primaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'CBT Exercises',
-                      _cbtExerciseCount.toString(),
-                      Icons.lightbulb_outline,
-                      cardColor,
-                      primaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      'Day Streak',
-                      _daysStreak.toString(),
-                      Icons.local_fire_department_outlined,
-                      cardColor,
-                      Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Weekly activity chart section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Weekly Activity',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[800] : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'This Week',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white70 : Colors.black87,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Expanded(
+                      child: _buildFeatureButton(
+                        context,
+                        'View Progress',
+                        Icons.insights,
+                        colorScheme.tertiary,
+                        () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Progress tracking coming soon!')),
+                          );
+                        },
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      height: 180,
-                      child:
-                          _buildSimpleWeeklyActivityChart(isDark, primaryColor),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildFeatureButton(
+                        context,
+                        'Meditation',
+                        Icons.self_improvement,
+                        isDark ? Colors.green.shade700 : Colors.green.shade600,
+                        () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Meditation features coming soon!')),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 24),
-
-              // Features quick access
-              Text(
-                'Quick Access',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildFeatureButton(
-                      context,
-                      'Record Thoughts',
-                      Icons.edit_note,
-                      isDark ? Colors.teal.shade700 : Colors.blue.shade600,
-                      () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const ThoughtLogScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildFeatureButton(
-                      context,
-                      'CBT Training',
-                      Icons.lightbulb_outline,
-                      isDark ? Colors.orange.shade700 : Colors.orange.shade600,
-                      () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const CBTScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildFeatureButton(
-                      context,
-                      'View Progress',
-                      Icons.insights,
-                      isDark ? Colors.purple.shade700 : Colors.purple.shade600,
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Progress tracking coming soon!')),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildFeatureButton(
-                      context,
-                      'Meditation',
-                      Icons.self_improvement,
-                      isDark ? Colors.green.shade700 : Colors.green.shade600,
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Meditation features coming soon!')),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: isDark ? Colors.grey : Colors.grey.shade600,
-        backgroundColor: isDark ? Colors.grey[850] : Colors.white,
-        elevation: 8,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lightbulb_outline),
-            activeIcon: Icon(Icons.lightbulb),
-            label: 'CBT',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.edit_note_outlined),
-            activeIcon: Icon(Icons.edit_note),
-            label: 'Thoughts',
-          ),
-        ],
+      bottomNavigationBar: Theme(
+        data: theme,
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.lightbulb_outline),
+              activeIcon: Icon(Icons.lightbulb),
+              label: 'CBT',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.edit_note_outlined),
+              activeIcon: Icon(Icons.edit_note),
+              label: 'Thoughts',
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // Build custom weekly activity chart without using fl_chart
-  Widget _buildSimpleWeeklyActivityChart(bool isDark, Color primaryColor) {
-    final textColor = isDark ? Colors.white70 : Colors.black54;
+  Widget _buildSimpleWeeklyActivityChart(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.bodySmall?.color;
+    final primaryColor = theme.colorScheme.primary;
     final now = DateTime.now();
 
     return Column(
@@ -709,16 +618,16 @@ class _HomePageState extends State<HomePage>
     BuildContext context,
     String title,
     String value,
-    IconData icon,
-    Color cardColor,
-    Color iconColor,
-  ) {
-    final textTheme = Theme.of(context).textTheme;
+    IconData icon, {
+    bool isStreak = false,
+  }) {
+    final theme = Theme.of(context);
+    final iconColor = isStreak ? Colors.orange : theme.colorScheme.primary;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -739,19 +648,13 @@ class _HomePageState extends State<HomePage>
           const SizedBox(height: 8),
           Text(
             value,
-            style: textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: theme.textTheme.headlineSmall,
           ),
           const SizedBox(height: 4),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white70
-                  : Colors.black54,
-            ),
+            style: theme.textTheme.bodySmall,
           ),
         ],
       ),
@@ -766,14 +669,14 @@ class _HomePageState extends State<HomePage>
     Color color,
     VoidCallback onTap,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: isDark ? Colors.grey[850] : Colors.white,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -801,11 +704,7 @@ class _HomePageState extends State<HomePage>
             Flexible(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+                style: theme.textTheme.titleMedium,
               ),
             ),
           ],
