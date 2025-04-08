@@ -52,7 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // If sign in is successful, navigate to the HomePage.
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'returning_user')),
+          MaterialPageRoute(
+              builder: (context) =>
+                  const HomePage(isNewLogin: true, type: 'returning_user')),
         );
       } else {
         // If user is null, sign in failed.
@@ -74,7 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleGuestLogin() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'guest_user')),
+      MaterialPageRoute(
+          builder: (context) =>
+              const HomePage(isNewLogin: true, type: 'guest_user')),
     );
   }
 
@@ -136,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
-                      "Welcome Back!",
+                      "Welcome HOOM!",
                       style:
                           TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                     ),
@@ -193,69 +197,74 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
 
 // OR divider
-Row(children: <Widget>[
-  Expanded(child: Divider(color: Colors.grey.shade400)),
-  const Padding(
-    padding: EdgeInsets.symmetric(horizontal: 10),
-    child: Text("OR"),
-  ),
-  Expanded(child: Divider(color: Colors.grey.shade400)),
-]),
+                    Row(children: <Widget>[
+                      Expanded(child: Divider(color: Colors.grey.shade400)),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Text("OR"),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey.shade400)),
+                    ]),
 
-const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
 // Continue with Google
-SizedBox(
-  width: double.infinity,
-  child: OutlinedButton.icon(
-    icon: Image.asset('assets/google.png', height: 24),
-    label: const Text("Continue with Google"),
-    onPressed: () async {
-      setState(() => _isLoading = true);
-      try {
-        final user = await MyAuthService().signInWithGoogle();
-        if (user != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'google_user')),
-          );
-        }
-      } catch (e) {
-        _showSnackBar("Google sign-in failed");
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
-      }
-    },
-  ),
-),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: Image.asset('assets/google.png', height: 24),
+                        label: const Text("Continue with Google"),
+                        onPressed: () async {
+                          setState(() => _isLoading = true);
+                          try {
+                            final user =
+                                await MyAuthService().signInWithGoogle();
+                            if (user != null) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const HomePage(
+                                        isNewLogin: true, type: 'google_user')),
+                              );
+                            }
+                          } catch (e) {
+                            _showSnackBar("Google sign-in failed");
+                          } finally {
+                            if (mounted) setState(() => _isLoading = false);
+                          }
+                        },
+                      ),
+                    ),
 
-const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
 // Continue with Apple
-SizedBox(
-  width: double.infinity,
-  child: OutlinedButton.icon(
-    icon: Icon(Icons.apple, size: 24),
-    label: const Text("Continue with Apple"),
-    onPressed: () async {
-      setState(() => _isLoading = true);
-      try {
-        final user = await MyAuthService().signInWithApple();
-        if (user != null) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage(isNewLogin: true, type: 'apple_user')),
-          );
-        }
-      } catch (e) {
-        _showSnackBar("Apple sign-in failed");
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
-      }
-    },
-  ),
-),
-
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: Icon(Icons.apple, size: 24),
+                        label: const Text("Continue with Apple"),
+                        onPressed: () async {
+                          setState(() => _isLoading = true);
+                          try {
+                            final user =
+                                await MyAuthService().signInWithApple();
+                            if (user != null) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const HomePage(
+                                        isNewLogin: true, type: 'apple_user')),
+                              );
+                            }
+                          } catch (e) {
+                            _showSnackBar("Apple sign-in failed");
+                          } finally {
+                            if (mounted) setState(() => _isLoading = false);
+                          }
+                        },
+                      ),
+                    ),
 
                     // Create Account & Forgot Password buttons
                     Row(
