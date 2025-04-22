@@ -17,6 +17,12 @@ class ExerciseService {
       'path': 'assets/exercises/managing_anxiety.json',
       'type': 'anxiety_management'
     },
+    {
+      'id': 'ba001',
+      'title': 'Behavior Activation Plan',
+      'path': 'assets/exercises/behavior_activation.json',
+      'type': 'behavior_activation'
+    }
   ];
 
   // Get the list of available exercises

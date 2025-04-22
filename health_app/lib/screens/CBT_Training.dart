@@ -23,12 +23,39 @@ class _CBTScreenState extends State<CBTScreen>
   bool _isLoading = true;
   List<CBTExercise> _availableExercises = [];
   List<CBTExercise> _completedExercises = [];
+  // Map to track available JSON exercises
+  Map<String, bool> _jsonExercisesAvailable = {};
+  // Track unlocked exercises
+  Map<String, bool> _unlockedExercises = {};
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this); // Updated to 4 tabs
+    _tabController = TabController(length: 3, vsync: this); // Changed to 3 tabs
     _loadExercises();
+    _checkAvailableJsonExercises();
+  }
+
+  // Check which JSON exercise files are actually available
+  Future<void> _checkAvailableJsonExercises() async {
+    Map<String, bool> availabilityMap = {};
+
+    for (var exercise in ExerciseService.availableExercises) {
+      try {
+        final exerciseData =
+            await ExerciseService.loadExerciseById(exercise['id']!);
+        availabilityMap[exercise['id']!] = exerciseData != null;
+      } catch (e) {
+        availabilityMap[exercise['id']!] = false;
+        print('Error checking exercise ${exercise['id']}: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _jsonExercisesAvailable = availabilityMap;
+      });
+    }
   }
 
   Future<void> _loadExercises() async {
@@ -54,16 +81,19 @@ class _CBTScreenState extends State<CBTScreen>
             await FirebaseFirestore.instance.collection('cbt_exercises').get();
 
         if (mounted) {
-          setState(() {
-            _completedExercises = completedSnapshot.docs
-                .map((doc) => CBTExercise.fromFirestore(doc))
-                .toList();
+          final completedList = completedSnapshot.docs
+              .map((doc) => CBTExercise.fromFirestore(doc))
+              .toList();
 
+          setState(() {
+            _completedExercises = completedList;
             _availableExercises = availableSnapshot.docs
                 .map((doc) => CBTExercise.fromFirestore(doc))
                 .toList();
-
             _isLoading = false;
+
+            // Calculate unlocked status for exercises
+            _calculateUnlockedExercises(completedList);
           });
         }
       } else {
@@ -77,6 +107,9 @@ class _CBTScreenState extends State<CBTScreen>
                 .map((doc) => CBTExercise.fromFirestore(doc))
                 .toList();
             _isLoading = false;
+
+            // For guest users, unlock all exercises
+            _unlockAllExercises();
           });
         }
       }
@@ -85,9 +118,44 @@ class _CBTScreenState extends State<CBTScreen>
       if (mounted) {
         setState(() {
           _isLoading = false;
+          // For safety, unlock all exercises on error
+          _unlockAllExercises();
         });
       }
     }
+  }
+
+  // Calculate which exercises should be unlocked based on completed exercises
+  void _calculateUnlockedExercises(List<CBTExercise> completedExercises) {
+    Map<String, bool> unlocked = {};
+
+    // Base exercises are always unlocked
+    unlocked['cd001'] = true; // Cognitive Distortions
+
+    // Check if Anxiety Management is unlocked (requires completion of Cognitive Distortions)
+    unlocked['anx001'] = completedExercises.any((e) =>
+        e.title.contains('Cognitive Distortions') ||
+        e.title.contains('Identifying Thought Patterns'));
+
+    // Check if Behavior Activation is unlocked (requires completion of Anxiety Management)
+    unlocked['ba001'] = completedExercises.any((e) =>
+        e.title.contains('Managing Anxiety') ||
+        e.title.contains('Challenging Negative Thoughts'));
+
+    setState(() {
+      _unlockedExercises = unlocked;
+    });
+  }
+
+  // For guest mode or error recovery
+  void _unlockAllExercises() {
+    Map<String, bool> unlocked = {};
+    for (var exercise in ExerciseService.availableExercises) {
+      unlocked[exercise['id']!] = true;
+    }
+    setState(() {
+      _unlockedExercises = unlocked;
+    });
   }
 
   Future<void> _completeExercise(CBTExercise exercise, {String? notes}) async {
@@ -155,6 +223,7 @@ class _CBTScreenState extends State<CBTScreen>
             TextField(
               controller: textController,
               maxLines: 3,
+              textDirection: TextDirection.ltr, // Fix for backward text
               decoration: const InputDecoration(
                 hintText: "Optional notes...",
                 border: OutlineInputBorder(),
@@ -179,6 +248,68 @@ class _CBTScreenState extends State<CBTScreen>
     );
   }
 
+  void _showAssetNotFoundDialog(String exerciseTitle) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Exercise Not Found"),
+        content: Text(
+            "Sorry, the '$exerciseTitle' exercise content couldn't be found."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Launch a JSON-based exercise if it's available and unlocked
+  void _launchExercise(String id, String title, String type) {
+    // Check if exercise JSON is available
+    if (_jsonExercisesAvailable[id] != true) {
+      _showAssetNotFoundDialog(title);
+      return;
+    }
+
+    // Check if exercise is unlocked
+    if (_unlockedExercises[id] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Complete previous exercises to unlock this one")),
+      );
+      return;
+    }
+
+    // Find the correct path for the exercise
+    final exerciseInfo = ExerciseService.availableExercises.firstWhere(
+      (e) => e['id'] == id,
+      orElse: () => {'path': ''},
+    );
+
+    if (exerciseInfo['path']!.isEmpty) {
+      _showAssetNotFoundDialog(title);
+      return;
+    }
+
+    // Launch the detailed exercise screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailedExerciseScreen(
+          exerciseJsonPath: exerciseInfo['path']!,
+          exerciseTitle: title,
+          exerciseType: type,
+        ),
+      ),
+    ).then((responses) {
+      if (responses != null) {
+        _loadExercises(); // Refresh exercises list
+      }
+    });
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -192,49 +323,36 @@ class _CBTScreenState extends State<CBTScreen>
     final primaryColor = isDark ? Colors.tealAccent : Colors.blue;
 
     if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('CBT Training'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+      return Center(
+        child: CircularProgressIndicator(color: primaryColor),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CBT Training'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          tabs: const [
-            Tab(text: 'Learn'),
-            Tab(text: 'Practice'),
-            Tab(text: 'Interactive'),
-            Tab(text: 'Progress'),
-          ],
-        ),
-      ),
-      drawer: const SideBar(),
-      body: TabBarView(
-        controller: _tabController,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Column(
         children: [
-          _buildLearnTab(context, isDark, primaryColor),
-          _buildPracticeTab(context, isDark, primaryColor),
-          _buildInteractiveExercisesTab(context, isDark, primaryColor),
-          _buildProgressTab(context, isDark, primaryColor),
+          TabBar(
+            controller: _tabController,
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            indicatorWeight: 3,
+            labelColor: Theme.of(context).colorScheme.primary,
+            tabs: const [
+              Tab(text: 'Learn'),
+              Tab(text: 'Practice'),
+              Tab(text: 'Progress'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildLearnTab(context, isDark, primaryColor),
+                _buildPracticeTab(context, isDark, primaryColor),
+                _buildProgressTab(context, isDark, primaryColor),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -405,7 +523,7 @@ class _CBTScreenState extends State<CBTScreen>
     );
   }
 
-  // Practice tab content with exercises
+  // Practice tab content with exercises (now including the JSON-based interactive exercises)
   Widget _buildPracticeTab(
       BuildContext context, bool isDark, Color primaryColor) {
     return SingleChildScrollView(
@@ -425,6 +543,66 @@ class _CBTScreenState extends State<CBTScreen>
                 ),
           ),
           const SizedBox(height: 24),
+
+          // Structured interactive exercises section
+          Text(
+            'Guided Interactive Exercises',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+
+          // Cognitive Distortions exercise
+          _buildExerciseCard(
+            context,
+            'Identifying Cognitive Distortions',
+            'Learn to recognize common thinking traps',
+            Icons.psychology_outlined,
+            '10-15 min',
+            isDark ? Colors.purple.shade700 : Colors.purple.shade500,
+            () => _launchExercise('cd001', 'Identifying Cognitive Distortions',
+                'cognitive_restructuring'),
+            isJsonExercise: true,
+            isUnlocked: _unlockedExercises['cd001'] ?? false,
+            isAvailable: _jsonExercisesAvailable['cd001'] ?? false,
+          ),
+
+          // Anxiety Management exercise
+          _buildExerciseCard(
+            context,
+            'Managing Anxiety with CBT',
+            'Practice techniques to reduce anxiety',
+            Icons.healing_outlined,
+            '15-20 min',
+            isDark ? Colors.teal.shade700 : Colors.teal.shade500,
+            () => _launchExercise(
+                'anx001', 'Managing Anxiety with CBT', 'anxiety_management'),
+            isJsonExercise: true,
+            isUnlocked: _unlockedExercises['anx001'] ?? false,
+            isAvailable: _jsonExercisesAvailable['anx001'] ?? false,
+          ),
+
+          // Behavior Activation exercise
+          _buildExerciseCard(
+            context,
+            'Behavior Activation Plan',
+            'Schedule mood-boosting activities',
+            Icons.calendar_today_outlined,
+            '10-15 min',
+            isDark ? Colors.orange.shade700 : Colors.orange.shade600,
+            () => _launchExercise(
+                'ba001', 'Behavior Activation Plan', 'behavior_activation'),
+            isJsonExercise: true,
+            isUnlocked: _unlockedExercises['ba001'] ?? false,
+            isAvailable: _jsonExercisesAvailable['ba001'] ?? false,
+          ),
+
+          const SizedBox(height: 24),
+
+          Text(
+            'Quick Exercises',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
 
           // Exercises list
           _buildExerciseCard(
@@ -615,107 +793,6 @@ class _CBTScreenState extends State<CBTScreen>
           const SizedBox(height: 40),
         ],
       ),
-    );
-  }
-
-  // NEW TAB: Interactive Exercises tab
-  Widget _buildInteractiveExercisesTab(
-      BuildContext context, bool isDark, Color primaryColor) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(
-          'Interactive CBT Exercises',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Complete these structured exercises to practice CBT techniques',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: isDark ? Colors.white70 : Colors.black54,
-              ),
-        ),
-        const SizedBox(height: 24),
-
-        // Exercise cards for structured JSON-based exercises
-        _buildExerciseCard(
-          context,
-          'Identifying Cognitive Distortions',
-          'Learn to recognize common thinking traps',
-          Icons.psychology_outlined,
-          '10-15 min',
-          isDark ? Colors.purple.shade700 : Colors.purple.shade500,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DetailedExerciseScreen(
-                  exerciseJsonPath:
-                      'assets/exercises/identifying_cognitive_distortions.json',
-                  exerciseTitle: 'Identifying Cognitive Distortions',
-                  exerciseType: 'cognitive_restructuring',
-                ),
-              ),
-            ).then((responses) {
-              if (responses != null) {
-                // Handle exercise completion - already handled by the screen
-                _loadExercises(); // Refresh the lists
-              }
-            });
-          },
-        ),
-
-        _buildExerciseCard(
-          context,
-          'Managing Anxiety with CBT',
-          'Practice techniques to reduce anxiety',
-          Icons.healing_outlined,
-          '15-20 min',
-          isDark ? Colors.teal.shade700 : Colors.teal.shade500,
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DetailedExerciseScreen(
-                  exerciseJsonPath: 'assets/exercises/managing_anxiety.json',
-                  exerciseTitle: 'Managing Anxiety with CBT',
-                  exerciseType: 'anxiety_management',
-                ),
-              ),
-            ).then((responses) {
-              if (responses != null) {
-                // Handle exercise completion - already handled by the screen
-                _loadExercises(); // Refresh the lists
-              }
-            });
-          },
-        ),
-
-        const SizedBox(height: 24),
-
-        // Information about exercises
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'About Interactive Exercises',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'These exercises are structured to guide you step-by-step through CBT techniques. Your responses are saved to track your progress. New exercises will be added regularly.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -1125,8 +1202,11 @@ class _CBTScreenState extends State<CBTScreen>
     IconData icon,
     String duration,
     Color color,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isJsonExercise = false,
+    bool isUnlocked = true,
+    bool isAvailable = true,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCompleted = _completedExercises.any((e) => e.title.contains(title));
 
@@ -1146,7 +1226,19 @@ class _CBTScreenState extends State<CBTScreen>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: isJsonExercise
+              ? (isAvailable
+                  ? (isUnlocked
+                      ? onTap
+                      : () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    "Complete previous exercises to unlock this one")),
+                          );
+                        })
+                  : () => _showAssetNotFoundDialog(title))
+              : onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -1171,9 +1263,12 @@ class _CBTScreenState extends State<CBTScreen>
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: isJsonExercise && !isUnlocked
+                              ? Colors.grey
+                              : null,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -1181,26 +1276,44 @@ class _CBTScreenState extends State<CBTScreen>
                         description,
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDark ? Colors.white70 : Colors.black54,
+                          color: isJsonExercise && !isUnlocked
+                              ? Colors.grey
+                              : (isDark ? Colors.white70 : Colors.black54),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[800] : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    duration,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isJsonExercise && !isUnlocked)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(
+                          Icons.lock_outline,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        duration,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isJsonExercise && !isUnlocked
+                              ? Colors.grey
+                              : (isDark ? Colors.white70 : Colors.black54),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),

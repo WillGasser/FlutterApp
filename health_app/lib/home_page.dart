@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   final UserStatsService _statsService = UserStatsService();
+  final PageController _pageController = PageController(initialPage: 1);
 
   // Data for charts and metrics
   int _thoughtLogCount = 0;
@@ -34,9 +35,21 @@ class _HomePageState extends State<HomePage>
   int _daysStreak = 0;
   List<int> _weeklyActivityData = List.filled(7, 0); // Activity data for 7 days
 
+  // List of screens for the bottom navigation bar
+  late final List<Widget> _screens;
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize screens for bottom navigation
+    _screens = [
+      const CBTScreen(), // CBT screen at index 0
+      Builder(
+          builder: (context) =>
+              _buildHomeContent(context)), // Home screen at index 1
+      const ThoughtLogScreen(), // Thought log at index 2
+    ];
 
     // Setup animations
     _animationController = AnimationController(
@@ -57,6 +70,7 @@ class _HomePageState extends State<HomePage>
   @override
   void dispose() {
     _animationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -140,387 +154,289 @@ class _HomePageState extends State<HomePage>
   }
 
   void _onItemTapped(int index) {
-    // Do nothing if tapping the already-selected item.
-    if (index == _selectedIndex) return;
-
+    // Update the selected index and animate to the corresponding page
     setState(() {
       _selectedIndex = index;
     });
 
-    // Navigate to the appropriate screen based on the selected index.
-    if (index == 0) {
-      // Navigate to CBT training screen.
-      Navigator.of(context)
-          .push(
-            MaterialPageRoute(builder: (context) => const CBTScreen()),
-          )
-          .then((_) => _fetchUserData()); // Refresh data when returning
-    } else if (index == 2) {
-      // Navigate to Thought log screen.
-      Navigator.of(context)
-          .push(
-            MaterialPageRoute(builder: (context) => const ThoughtLogScreen()),
-          )
-          .then((_) => _fetchUserData()); // Refresh data when returning
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+
+    // Refresh data when navigating back to home
+    if (index == 1) {
+      _fetchUserData();
     }
-    // If index == 1, it's Home, so we remain on the current page.
   }
 
-  @override
-  Widget build(BuildContext context) {
+  // Build the home content - separated so we can also use it in the page view
+  Widget _buildHomeContent(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: Center(
-          child: CircularProgressIndicator(color: colorScheme.primary),
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: const Text(
-          'HOOM',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon!')),
-              );
-            },
-          ),
-        ],
-      ),
-      drawer: const SideBar(),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: RefreshIndicator(
-          onRefresh: _fetchUserData,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome section
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: isDark
-                          ? [
-                              colorScheme.primary,
-                              colorScheme.primaryContainer ??
-                                  colorScheme.primary.withOpacity(0.7)
-                            ]
-                          : [
-                              colorScheme.primary,
-                              colorScheme.primaryContainer ??
-                                  colorScheme.primary.withOpacity(0.7)
-                            ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Welcome back',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'How are you today?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: isDark ? 0.5 : 0.3,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(context)
-                                    .push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ThoughtLogScreen(),
-                                      ),
-                                    )
-                                    .then((_) => _fetchUserData());
-                              },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                side: const BorderSide(color: Colors.white60),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: const Text('Start Thought Log'),
-                            ),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: RefreshIndicator(
+        onRefresh: _fetchUserData,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome section
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [
+                            colorScheme.primary,
+                            colorScheme.primaryContainer ??
+                                colorScheme.primary.withOpacity(0.7)
+                          ]
+                        : [
+                            colorScheme.primary,
+                            colorScheme.primaryContainer ??
+                                colorScheme.primary.withOpacity(0.7)
                           ],
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.psychology_outlined,
-                          size: 50,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                      ),
-                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Quick stats
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        'Thought Logs',
-                        _thoughtLogCount.toString(),
-                        Icons.edit_note,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        'CBT Exercises',
-                        _cbtExerciseCount.toString(),
-                        Icons.lightbulb_outline,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        'Day Streak',
-                        _daysStreak.toString(),
-                        Icons.local_fire_department_outlined,
-                        isStreak: true,
-                      ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 24),
-
-                // Weekly activity chart section
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Weekly Activity',
-                            style: theme.textTheme.titleLarge,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color:
-                                  isDark ? Colors.grey[800] : Colors.grey[200],
-                              borderRadius: BorderRadius.circular(20),
+                          const Text(
+                            'Welcome back',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
                             ),
-                            child: Text(
-                              'This Week',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.textTheme.bodySmall?.color,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'How are you today?',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: isDark ? 0.5 : 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: () {
+                              _onItemTapped(2); // Navigate to Thought Log tab
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white60),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
                               ),
                             ),
+                            child: const Text('Start Thought Log'),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 180,
-                        child: _buildSimpleWeeklyActivityChart(context),
+                    ),
+                    const SizedBox(width: 20),
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
                       ),
-                    ],
+                      child: Icon(
+                        Icons.psychology_outlined,
+                        size: 50,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Quick stats
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Thought Logs',
+                      _thoughtLogCount.toString(),
+                      Icons.edit_note,
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Features quick access
-                Text(
-                  'Quick Access',
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFeatureButton(
-                        context,
-                        'Record Thoughts',
-                        Icons.edit_note,
-                        colorScheme.primary,
-                        () {
-                          Navigator.of(context)
-                              .push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ThoughtLogScreen(),
-                                ),
-                              )
-                              .then((_) => _fetchUserData());
-                        },
-                      ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'CBT Exercises',
+                      _cbtExerciseCount.toString(),
+                      Icons.lightbulb_outline,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildFeatureButton(
-                        context,
-                        'CBT Training',
-                        Icons.lightbulb_outline,
-                        colorScheme.secondary,
-                        () {
-                          Navigator.of(context)
-                              .push(
-                                MaterialPageRoute(
-                                  builder: (context) => const CBTScreen(),
-                                ),
-                              )
-                              .then((_) => _fetchUserData());
-                        },
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Day Streak',
+                      _daysStreak.toString(),
+                      Icons.local_fire_department_outlined,
+                      isStreak: true,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Weekly activity chart section
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 16),
-
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _buildFeatureButton(
-                        context,
-                        'View Progress',
-                        Icons.insights,
-                        colorScheme.tertiary,
-                        () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Progress tracking coming soon!')),
-                          );
-                        },
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Weekly Activity',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'This Week',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: theme.textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildFeatureButton(
-                        context,
-                        'Meditation',
-                        Icons.self_improvement,
-                        isDark ? Colors.green.shade700 : Colors.green.shade600,
-                        () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Meditation features coming soon!')),
-                          );
-                        },
-                      ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 180,
+                      child: _buildSimpleWeeklyActivityChart(context),
                     ),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: 24),
-              ],
-            ),
+              const SizedBox(height: 24),
+
+              // Features quick access
+              Text(
+                'Quick Access',
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFeatureButton(
+                      context,
+                      'Record Thoughts',
+                      Icons.edit_note,
+                      colorScheme.primary,
+                      () {
+                        _onItemTapped(2); // Navigate to Thought Log tab
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFeatureButton(
+                      context,
+                      'CBT Training',
+                      Icons.lightbulb_outline,
+                      colorScheme.secondary,
+                      () {
+                        _onItemTapped(0); // Navigate to CBT tab
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFeatureButton(
+                      context,
+                      'View Progress',
+                      Icons.insights,
+                      colorScheme.tertiary,
+                      () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Progress tracking coming soon!')),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFeatureButton(
+                      context,
+                      'Meditation',
+                      Icons.self_improvement,
+                      isDark ? Colors.green.shade700 : Colors.green.shade600,
+                      () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text('Meditation features coming soon!')),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+            ],
           ),
-        ),
-      ),
-      bottomNavigationBar: Theme(
-        data: theme,
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.lightbulb_outline),
-              activeIcon: Icon(Icons.lightbulb),
-              label: 'CBT',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.edit_note_outlined),
-              activeIcon: Icon(Icons.edit_note),
-              label: 'Thoughts',
-            ),
-          ],
         ),
       ),
     );
@@ -706,6 +622,88 @@ class _HomePageState extends State<HomePage>
                 label,
                 style: theme.textTheme.titleMedium,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(color: theme.colorScheme.primary),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: const Text(
+          'HOOM',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notifications coming soon!')),
+              );
+            },
+          ),
+        ],
+      ),
+      drawer: const SideBar(),
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(), // Prevent swiping
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: _screens,
+      ),
+      bottomNavigationBar: Theme(
+        data: theme,
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.lightbulb_outline),
+              activeIcon: Icon(Icons.lightbulb),
+              label: 'CBT',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.edit_note_outlined),
+              activeIcon: Icon(Icons.edit_note),
+              label: 'Thoughts',
             ),
           ],
         ),

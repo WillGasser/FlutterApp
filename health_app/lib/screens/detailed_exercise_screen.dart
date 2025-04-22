@@ -5,7 +5,7 @@ import '../data/user_stats.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class DetailedExerciseScreen extends StatelessWidget {
+class DetailedExerciseScreen extends StatefulWidget {
   final String exerciseJsonPath;
   final String exerciseTitle;
   final String exerciseType;
@@ -18,22 +18,56 @@ class DetailedExerciseScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<DetailedExerciseScreen> createState() => _DetailedExerciseScreenState();
+}
+
+class _DetailedExerciseScreenState extends State<DetailedExerciseScreen> {
+  bool _showBottomNavBar = false;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(exerciseTitle),
+        title: Text(widget.exerciseTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: ExerciseRenderer(
-        exerciseJsonPath: exerciseJsonPath,
+        exerciseJsonPath: widget.exerciseJsonPath,
         onComplete: (responses) {
           // Handle the completion
           _showCompletionDialog(context, responses);
         },
       ),
+      // Hide bottom navigation bar for this screen
+      bottomNavigationBar: _showBottomNavBar
+          ? Theme(
+              data: Theme.of(context),
+              child: BottomNavigationBar(
+                currentIndex: 0, // Doesn't matter which index is selected here
+                onTap: (_) {},
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.lightbulb_outline),
+                    activeIcon: Icon(Icons.lightbulb),
+                    label: 'CBT',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home_outlined),
+                    activeIcon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.edit_note_outlined),
+                    activeIcon: Icon(Icons.edit_note),
+                    label: 'Thoughts',
+                  ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 
@@ -83,8 +117,8 @@ class DetailedExerciseScreen extends StatelessWidget {
           .doc(user.uid)
           .collection('cbt_exercises')
           .add({
-        'title': exerciseTitle,
-        'type': exerciseType,
+        'title': widget.exerciseTitle,
+        'type': widget.exerciseType,
         'completedDate': FieldValue.serverTimestamp(),
         'notes': responsesSummary,
       });
@@ -92,8 +126,8 @@ class DetailedExerciseScreen extends StatelessWidget {
       // Update stats
       final statsService = UserStatsService();
       await statsService.logCBTExercise(
-        title: exerciseTitle,
-        exerciseType: exerciseType,
+        title: widget.exerciseTitle,
+        exerciseType: widget.exerciseType,
         notes: "Completed interactive exercise",
       );
 

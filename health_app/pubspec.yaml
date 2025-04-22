@@ -72,6 +72,9 @@ flutter:
   assets:
     - assets/google.png
     - assets/OnBoarding.mp4
+    - assets/exercises/identifying_cognitive_distortions.json
+    - assets/exercises/managing_anxiety.json
+    - assets/exercises/behavior_activation.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

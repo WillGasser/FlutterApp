@@ -117,22 +117,24 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Thought log saved successfully!")),
       );
+
+      // Reset the state
+      setState(() {
+        _textController.clear();
+        _isStarted = false;
+        _isCompleted = false;
+        _timeRemaining = 60;
+        _isSaving = false;
+      });
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error saving log: ${e.toString()}")),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _textController.clear();
-          _isStarted = false;
-          _isCompleted = false;
-          _timeRemaining = 60;
-          _isSaving = false;
-        });
-      }
+      setState(() {
+        _isSaving = false;
+      });
     }
   }
 
@@ -145,98 +147,78 @@ class _ThoughtLogScreenState extends State<ThoughtLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thought Log'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Display the current date at the top.
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Display the current date at the top.
+            Text(
+              _formattedDate,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            // Show the countdown timer if it has started.
+            if (_isStarted)
               Text(
-                _formattedDate,
-                style: Theme.of(context).textTheme.headlineSmall,
+                "Time Remaining: $_timeRemaining seconds",
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(height: 16),
-              // Show the countdown timer if it has started.
-              if (_isStarted)
-                Text(
-                  "Time Remaining: $_timeRemaining seconds",
-                  style: Theme.of(context).textTheme.headlineMedium,
+            const SizedBox(height: 16),
+            // Text field for entering the thought log.
+            Expanded(
+              child: TextField(
+                controller: _textController,
+                maxLines: null,
+                expands: true,
+                textAlignVertical: TextAlignVertical.top,
+                textAlign: TextAlign.start,
+                decoration: const InputDecoration(
+                  hintText: "Type your thoughts here...",
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.all(12),
                 ),
-              const SizedBox(height: 16),
-              // Text field for entering the thought log.
-              Expanded(
-                child: TextField(
-                  controller: _textController,
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  textAlign: TextAlign.start,
-                  decoration: const InputDecoration(
-                    hintText: "Type your thoughts here...",
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.all(12),
-                  ),
-                  onChanged: (value) {
-                    if (!_isStarted && value.trim().isNotEmpty) {
-                      _startTimer();
-                    }
-                  },
-                ),
+                onChanged: (value) {
+                  if (!_isStarted && value.trim().isNotEmpty) {
+                    _startTimer();
+                  }
+                },
               ),
-              const SizedBox(height: 16),
-              // When the timer completes, display a "Log Complete" banner.
-              if (_isCompleted)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  color: Colors.green[300],
-                  child: const Text(
-                    "Log Complete",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+            ),
+            const SizedBox(height: 16),
+            // When the timer completes, display a "Log Complete" banner.
+            if (_isCompleted)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Colors.green[300],
+                child: const Text(
+                  "Log Complete",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
-              const SizedBox(height: 16),
-              // Button for the user to finalize the log.
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                    ),
-                    child: const Text("Back to Home"),
-                  ),
-                  ElevatedButton(
-                    onPressed: _isSaving ? null : _finishLog,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                    ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2.0))
-                        : const Text("Complete"),
-                  ),
-                ],
               ),
-            ],
-          ),
+            const SizedBox(height: 16),
+            // Button for the user to finalize the log.
+            ElevatedButton(
+              onPressed: _isSaving ? null : _finishLog,
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                minimumSize: const Size(200, 50),
+              ),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.0))
+                  : const Text("Save Thought Log",
+                      style: TextStyle(fontSize: 16)),
+            ),
+          ],
         ),
       ),
     );

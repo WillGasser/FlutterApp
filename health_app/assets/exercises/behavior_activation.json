@@ -1,0 +1,93 @@
+{
+    "id": "ba001",
+    "title": "Behavior Activation Plan",
+    "description": "Create a personalized plan to engage in rewarding activities that improve your mood",
+    "type": "behavior_activation",
+    "durationMinutes": 15,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "text_response",
+            "prompt": "List 3 activities you used to enjoy but have been doing less of recently:",
+            "placeholder": "Example: hiking, reading, cooking with friends..."
+        },
+        {
+            "id": "q2",
+            "type": "scale",
+            "prompt": "On a scale of 1-10, how much effort would it take to do one of these activities?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very little effort",
+            "maxLabel": "Extensive effort"
+        },
+        {
+            "id": "q3",
+            "type": "multiple_choice",
+            "prompt": "Which of these barriers most prevents you from engaging in enjoyable activities?",
+            "options": [
+                "Lack of energy/motivation",
+                "Lack of time",
+                "Feeling like it won't be enjoyable",
+                "Physical limitations",
+                "Social anxiety"
+            ]
+        },
+        {
+            "id": "q4",
+            "type": "text_response",
+            "prompt": "Choose ONE small, achievable activity you could do this week:",
+            "placeholder": "Example: Go for a 10-minute walk, read one chapter, call a friend"
+        },
+        {
+            "id": "q5",
+            "type": "multiple_choice",
+            "prompt": "When could you realistically do this activity?",
+            "options": [
+                "Tomorrow",
+                "This weekend",
+                "A specific day this week",
+                "When I feel motivated",
+                "I'll schedule it in my calendar now"
+            ]
+        },
+        {
+            "id": "q6",
+            "type": "scale",
+            "prompt": "How confident are you that you'll complete this activity?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Not confident",
+            "maxLabel": "Very confident"
+        },
+        {
+            "id": "q7",
+            "type": "true_false",
+            "prompt": "I will need to overcome obstacles to complete this activity.",
+            "correctAnswer": null
+        },
+        {
+            "id": "q8",
+            "type": "text_response",
+            "prompt": "What might get in your way, and how will you handle it?",
+            "placeholder": "Example: If I feel too tired, I'll just do 5 minutes instead of giving up entirely"
+        },
+        {
+            "id": "q9",
+            "type": "multiple_choice",
+            "prompt": "How will you remind yourself to do this activity?",
+            "options": [
+                "Set a phone reminder/alarm",
+                "Write it on my calendar/planner",
+                "Ask someone to remind me",
+                "Put a note somewhere I'll see it",
+                "I'll remember on my own"
+            ]
+        },
+        {
+            "id": "q10",
+            "type": "text_response",
+            "prompt": "How do you think you'll feel after completing this activity?",
+            "placeholder": "Example: I'll probably feel proud of myself and more energetic"
+        }
+    ]
+}
