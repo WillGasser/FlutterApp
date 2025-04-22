@@ -1,0 +1,102 @@
+{
+    "id": "cd001",
+    "title": "Identifying Cognitive Distortions",
+    "description": "Learn to identify common thinking traps that contribute to anxiety and depression",
+    "type": "cognitive_restructuring",
+    "durationMinutes": 15,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "multiple_choice",
+            "prompt": "Which of the following is an example of 'catastrophizing'?",
+            "options": [
+                "If I fail this test, my whole future is ruined",
+                "I don't like public speaking",
+                "I made a mistake on this report",
+                "This situation is difficult"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q2",
+            "type": "true_false",
+            "prompt": "All-or-nothing thinking means seeing things as only good or bad with no middle ground.",
+            "correctAnswer": true
+        },
+        {
+            "id": "q3",
+            "type": "multiple_choice",
+            "prompt": "Which cognitive distortion involves focusing only on negative aspects and ignoring positives?",
+            "options": [
+                "Emotional reasoning",
+                "Mental filtering",
+                "Overgeneralization",
+                "Personalization"
+            ],
+            "correctAnswer": 1
+        },
+        {
+            "id": "q4",
+            "type": "text_response",
+            "prompt": "Describe a recent thought you had that might involve a cognitive distortion:",
+            "placeholder": "Example: I made a mistake, so I'm a complete failure"
+        },
+        {
+            "id": "q5",
+            "type": "multiple_choice",
+            "prompt": "Which distortion assumes you know what others are thinking without evidence?",
+            "options": [
+                "Fortune telling",
+                "Mind reading",
+                "Labeling",
+                "Should statements"
+            ],
+            "correctAnswer": 1
+        },
+        {
+            "id": "q6",
+            "type": "multiple_choice",
+            "prompt": "An example of 'personalization' is:",
+            "options": [
+                "The team project failed because I'm incompetent",
+                "Everyone at the party will judge me",
+                "I'll definitely fail the interview tomorrow",
+                "I should never make mistakes"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q7",
+            "type": "scale",
+            "prompt": "How often do you notice cognitive distortions in your thinking?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Rarely",
+            "maxLabel": "Very frequently"
+        },
+        {
+            "id": "q8",
+            "type": "text_response",
+            "prompt": "What might be a more balanced way to view the thought you described earlier?",
+            "placeholder": "Example: Making a mistake doesn't define my worth..."
+        },
+        {
+            "id": "q9",
+            "type": "multiple_choice",
+            "prompt": "Which is NOT a common cognitive distortion?",
+            "options": [
+                "Black and white thinking",
+                "Positive visualization",
+                "Jumping to conclusions",
+                "Mental filtering"
+            ],
+            "correctAnswer": 1
+        },
+        {
+            "id": "q10",
+            "type": "true_false",
+            "prompt": "Recognizing cognitive distortions is the first step to challenging unhelpful thoughts.",
+            "correctAnswer": true
+        }
+    ]
+}

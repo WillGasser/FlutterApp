@@ -1,0 +1,86 @@
+{
+    "id": "anx001",
+    "title": "Managing Anxiety with CBT",
+    "description": "Learn and practice techniques to reduce anxiety using cognitive behavioral therapy",
+    "type": "anxiety_management",
+    "durationMinutes": 20,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "text_response",
+            "prompt": "Describe a situation that typically triggers your anxiety:",
+            "placeholder": "Example: Speaking in front of groups..."
+        },
+        {
+            "id": "q2",
+            "type": "scale",
+            "prompt": "Rate your anxiety level when thinking about this situation:",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Barely noticeable",
+            "maxLabel": "Extremely intense"
+        },
+        {
+            "id": "q3",
+            "type": "text_response",
+            "prompt": "What thoughts go through your mind in this situation?",
+            "placeholder": "Example: Everyone will think I'm incompetent..."
+        },
+        {
+            "id": "q4",
+            "type": "multiple_choice",
+            "prompt": "Which physical sensations do you typically experience during anxiety? (Select most common)",
+            "options": [
+                "Racing heart/palpitations",
+                "Shortness of breath",
+                "Dizziness/lightheadedness",
+                "Nausea or stomach discomfort"
+            ]
+        },
+        {
+            "id": "q5",
+            "type": "text_response",
+            "prompt": "How do you typically respond to or cope with these anxious feelings?",
+            "placeholder": "Example: I avoid the situation entirely..."
+        },
+        {
+            "id": "q6",
+            "type": "multiple_choice",
+            "prompt": "Which coping strategy is most effective for long-term anxiety management?",
+            "options": [
+                "Avoiding anxiety-provoking situations",
+                "Distraction by scrolling social media",
+                "Gradual exposure to feared situations",
+                "Telling yourself to 'just relax'"
+            ],
+            "correctAnswer": 2
+        },
+        {
+            "id": "q7",
+            "type": "text_response",
+            "prompt": "What evidence contradicts your anxious thought?",
+            "placeholder": "Example: I've given successful presentations before..."
+        },
+        {
+            "id": "q8",
+            "type": "true_false",
+            "prompt": "Deep breathing exercises can help reduce the physical symptoms of anxiety.",
+            "correctAnswer": true
+        },
+        {
+            "id": "q9",
+            "type": "text_response",
+            "prompt": "Write a more balanced alternative to your anxious thought:",
+            "placeholder": "Example: While I feel nervous, I can handle this presentation..."
+        },
+        {
+            "id": "q10",
+            "type": "scale",
+            "prompt": "After reframing your thought, rate your anxiety level now:",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Barely noticeable",
+            "maxLabel": "Extremely intense"
+        }
+    ]
+}

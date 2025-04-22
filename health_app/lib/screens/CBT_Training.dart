@@ -6,6 +6,8 @@ import '../sidebar.dart';
 import '../theme.dart';
 import '../data/user_stats.dart';
 import '../data/cbt_exercise.dart';
+import '../services/exercise_service.dart';
+import '../screens/detailed_exercise_screen.dart';
 
 class CBTScreen extends StatefulWidget {
   const CBTScreen({Key? key}) : super(key: key);
@@ -25,7 +27,7 @@ class _CBTScreenState extends State<CBTScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this); // Updated to 4 tabs
     _loadExercises();
   }
 
@@ -220,6 +222,7 @@ class _CBTScreenState extends State<CBTScreen>
           tabs: const [
             Tab(text: 'Learn'),
             Tab(text: 'Practice'),
+            Tab(text: 'Interactive'),
             Tab(text: 'Progress'),
           ],
         ),
@@ -230,6 +233,7 @@ class _CBTScreenState extends State<CBTScreen>
         children: [
           _buildLearnTab(context, isDark, primaryColor),
           _buildPracticeTab(context, isDark, primaryColor),
+          _buildInteractiveExercisesTab(context, isDark, primaryColor),
           _buildProgressTab(context, isDark, primaryColor),
         ],
       ),
@@ -611,6 +615,107 @@ class _CBTScreenState extends State<CBTScreen>
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  // NEW TAB: Interactive Exercises tab
+  Widget _buildInteractiveExercisesTab(
+      BuildContext context, bool isDark, Color primaryColor) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'Interactive CBT Exercises',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Complete these structured exercises to practice CBT techniques',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+        ),
+        const SizedBox(height: 24),
+
+        // Exercise cards for structured JSON-based exercises
+        _buildExerciseCard(
+          context,
+          'Identifying Cognitive Distortions',
+          'Learn to recognize common thinking traps',
+          Icons.psychology_outlined,
+          '10-15 min',
+          isDark ? Colors.purple.shade700 : Colors.purple.shade500,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DetailedExerciseScreen(
+                  exerciseJsonPath:
+                      'assets/exercises/identifying_cognitive_distortions.json',
+                  exerciseTitle: 'Identifying Cognitive Distortions',
+                  exerciseType: 'cognitive_restructuring',
+                ),
+              ),
+            ).then((responses) {
+              if (responses != null) {
+                // Handle exercise completion - already handled by the screen
+                _loadExercises(); // Refresh the lists
+              }
+            });
+          },
+        ),
+
+        _buildExerciseCard(
+          context,
+          'Managing Anxiety with CBT',
+          'Practice techniques to reduce anxiety',
+          Icons.healing_outlined,
+          '15-20 min',
+          isDark ? Colors.teal.shade700 : Colors.teal.shade500,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const DetailedExerciseScreen(
+                  exerciseJsonPath: 'assets/exercises/managing_anxiety.json',
+                  exerciseTitle: 'Managing Anxiety with CBT',
+                  exerciseType: 'anxiety_management',
+                ),
+              ),
+            ).then((responses) {
+              if (responses != null) {
+                // Handle exercise completion - already handled by the screen
+                _loadExercises(); // Refresh the lists
+              }
+            });
+          },
+        ),
+
+        const SizedBox(height: 24),
+
+        // Information about exercises
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'About Interactive Exercises',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'These exercises are structured to guide you step-by-step through CBT techniques. Your responses are saved to track your progress. New exercises will be added regularly.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
