@@ -236,53 +236,10 @@ class UserStatsService {
     }
   }
 
-  // Handle daily login to update streak
-  Future<void> updateLoginStreak() async {
-    try {
-      final stats = await getUserStats();
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final lastActive = DateTime(
-        stats.lastActiveDate.year,
-        stats.lastActiveDate.month,
-        stats.lastActiveDate.day,
-      );
-
-      int newStreak = stats.daysStreak;
-
-      if (lastActive.isAtSameMomentAs(today)) {
-        // Already logged in today, no change to streak
-      } else if (lastActive.isAtSameMomentAs(DateTime(
-          today.year, today.month, today.day - 1))) {
-        // Logged in yesterday, increment streak
-        newStreak += 1;
-      } else {
-        // Streak broken, reset to 1 for today
-        newStreak = 1;
-      }
-
-      // Update weekly activity data
-      List<int> updatedWeeklyData = List<int>.from(stats.weeklyActivityData);
-      final dayIndex = now.weekday - 1; // 0 = Monday, 6 = Sunday
-      updatedWeeklyData[dayIndex] += 1;
-
-      final updatedStats = stats.copyWith(
-        daysStreak: newStreak,
-        lastActiveDate: now,
-        weeklyActivityData: updatedWeeklyData,
-      );
-
-      await updateUserStats(updatedStats);
-    } catch (e) {
-      print('Error updating login streak: $e');
-    }
-  }
-
-  // Generate weekly activity data based on thought logs and exercises
+  // Generate weekly activity data based on thought logs
   Future<List<int>> generateWeeklyActivityData() async {
     final logsRef = _thoughtLogsRef;
-    final exercisesRef = _cbtExercisesRef;
-    if (logsRef == null || exercisesRef == null) return List.filled(7, 0);
+    if (logsRef == null) return List.filled(7, 0);
 
     try {
       // Get current date
@@ -296,40 +253,31 @@ class UserStatsService {
       // Initialize counts for each day
       final counts = List<int>.filled(7, 0);
 
-      // Get start and end dates for the query
+      // Get logs from the last 7 days
       final startDate = DateTime(
           weekDays.first.year, weekDays.first.month, weekDays.first.day);
       final endDate = DateTime(weekDays.last.year, weekDays.last.month,
           weekDays.last.day, 23, 59, 59);
 
-      // Get thought logs
-      final logsSnapshot = await logsRef
+      final snapshot = await logsRef
           .where('timestamp',
               isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
           .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
           .get();
 
-      // Get completed exercises
-      final exercisesSnapshot = await exercisesRef
-          .where('timestamp',
-              isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-          .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-          .get();
-
-      // Count activities per day
-      for (final doc in [...logsSnapshot.docs, ...exercisesSnapshot.docs]) {
+      // Count logs per day
+      for (final doc in snapshot.docs) {
         final timestamp = doc['timestamp'] as Timestamp?;
         if (timestamp == null) continue;
 
-        final activityDate = timestamp.toDate();
-        final activityDay =
-            DateTime(activityDate.year, activityDate.month, activityDate.day);
+        final logDate = timestamp.toDate();
+        final logDay = DateTime(logDate.year, logDate.month, logDate.day);
 
         for (int i = 0; i < weekDays.length; i++) {
           final weekDay = weekDays[i];
-          if (activityDay.year == weekDay.year &&
-              activityDay.month == weekDay.month &&
-              activityDay.day == weekDay.day) {
+          if (logDay.year == weekDay.year &&
+              logDay.month == weekDay.month &&
+              logDay.day == weekDay.day) {
             counts[i]++;
             break;
           }
@@ -401,6 +349,42 @@ class UserStatsService {
       await updateUserStats(updatedStats);
     } catch (e) {
       print('Error logging CBT exercise: $e');
+    }
+  }
+
+  // Handle daily login to update streak
+  Future<void> updateLoginStreak() async {
+    try {
+      final stats = await getUserStats();
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = DateTime(now.year, now.month, now.day - 1);
+      final lastActive = DateTime(
+        stats.lastActiveDate.year,
+        stats.lastActiveDate.month,
+        stats.lastActiveDate.day,
+      );
+
+      int newStreak = stats.daysStreak;
+
+      if (lastActive.isAtSameMomentAs(today)) {
+        // Already logged in today, no change to streak
+      } else if (lastActive.isAtSameMomentAs(yesterday)) {
+        // Logged in yesterday, increment streak
+        newStreak += 1;
+      } else {
+        // Streak broken, reset to 1 for today
+        newStreak = 1;
+      }
+
+      final updatedStats = stats.copyWith(
+        daysStreak: newStreak,
+        lastActiveDate: now,
+      );
+
+      await updateUserStats(updatedStats);
+    } catch (e) {
+      print('Error updating login streak: $e');
     }
   }
 }

@@ -34,6 +34,7 @@ class _HomePageState extends State<HomePage>
   int _cbtExerciseCount = 0;
   int _daysStreak = 0;
   List<int> _weeklyActivityData = List.filled(7, 0); // Activity data for 7 days
+  DateTime? _lastActiveDate;
 
   // List of screens for the bottom navigation bar
   late final List<Widget> _screens;
@@ -44,7 +45,7 @@ class _HomePageState extends State<HomePage>
 
     // Initialize screens for bottom navigation
     _screens = [
-      const CBTScreen(), // CBT screen at index 0
+      const CBTScreen(), // CBT screen at index 0 - now using our improved unified screen
       Builder(
           builder: (context) =>
               _buildHomeContent(context)), // Home screen at index 1
@@ -83,7 +84,6 @@ class _HomePageState extends State<HomePage>
 
       // Show welcome overlay for new login
       if (widget.isNewLogin) {
-        print('Showing welcome overlay for new login.');
         await WelcomeManager.showWelcomeIfNeeded(context, widget.type);
 
         // Update the user's login streak
@@ -125,12 +125,35 @@ class _HomePageState extends State<HomePage>
       // Update all stats and get the latest values
       final stats = await _statsService.updateAllStats();
 
+      if (!mounted) return;
+
       setState(() {
         _thoughtLogCount = stats.thoughtLogCount;
         _cbtExerciseCount = stats.cbtExerciseCount;
         _daysStreak = stats.daysStreak;
         _weeklyActivityData = stats.weeklyActivityData;
+        _lastActiveDate = stats.lastActiveDate;
       });
+
+      // Check if it's a new day and update streak
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final lastActive = _lastActiveDate != null
+          ? DateTime(_lastActiveDate!.year, _lastActiveDate!.month,
+              _lastActiveDate!.day)
+          : null;
+
+      if (lastActive == null || lastActive.isBefore(today)) {
+        await _statsService.updateLoginStreak();
+        // Refresh stats after updating streak
+        final updatedStats = await _statsService.getUserStats();
+        if (mounted) {
+          setState(() {
+            _daysStreak = updatedStats.daysStreak;
+            _lastActiveDate = updatedStats.lastActiveDate;
+          });
+        }
+      }
     } catch (e) {
       print('Error fetching user data: $e');
       // Fallback to mock data if there's an error
@@ -144,17 +167,12 @@ class _HomePageState extends State<HomePage>
       _thoughtLogCount = 0;
       _cbtExerciseCount = 0;
       _daysStreak = 0;
-
-      // Generate random weekly activity data
-      final random = DateTime.now().millisecondsSinceEpoch;
-      _weeklyActivityData = List.generate(7, (i) {
-        return (((random + i * 17) % 3)); // Less random activity for guest mode
-      });
+      _weeklyActivityData = List.filled(7, 0);
+      _lastActiveDate = DateTime.now();
     });
   }
 
   void _onItemTapped(int index) {
-    // Update the selected index and animate to the corresponding page
     setState(() {
       _selectedIndex = index;
     });
@@ -169,6 +187,76 @@ class _HomePageState extends State<HomePage>
     if (index == 1) {
       _fetchUserData();
     }
+  }
+
+  Future<void> _navigateToThoughtLog() async {
+    setState(() {
+      _selectedIndex = 2;
+    });
+
+    await _pageController.animateToPage(
+      2,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+
+    if (!mounted) return;
+  }
+
+  Future<void> _navigateToCBTExercise() async {
+    setState(() {
+      _selectedIndex = 0;
+    });
+
+    await _pageController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+
+    if (!mounted) return;
+  }
+
+  Future<void> _navigateToProgress() async {
+    setState(() {
+      _selectedIndex = 0;
+    });
+
+    await _pageController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Scroll down to view your progress'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _navigateToMindfulness() async {
+    setState(() {
+      _selectedIndex = 0;
+    });
+
+    await _pageController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Try the Mindfulness exercise in the CBT modules'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   // Build the home content - separated so we can also use it in the page view
@@ -221,8 +309,11 @@ class _HomePageState extends State<HomePage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Welcome back',
+                          Text(
+                            // Conditional greeting based on logged-in status
+                            FirebaseAuth.instance.currentUser == null
+                                ? 'Welcome, Friend' // For guest users
+                                : 'Welcome, ${FirebaseAuth.instance.currentUser!.displayName ?? 'User'}', // For logged-in users
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 16,
@@ -239,18 +330,35 @@ class _HomePageState extends State<HomePage>
                             ),
                           ),
                           const SizedBox(height: 12),
-                          OutlinedButton(
-                            onPressed: () {
-                              _onItemTapped(2); // Navigate to Thought Log tab
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white60),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? const Color(0xFF3A3A35)
+                                  : const Color(0xFFF8F8F4),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            child: const Text('Start Thought Log'),
+                            child: OutlinedButton(
+                              onPressed: _navigateToThoughtLog,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor:
+                                    ThemeProvider.getAuthTextColor(context),
+                                side: BorderSide.none,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 14),
+                              ),
+                              child: const Text('Start Thought Log'),
+                            ),
                           ),
                         ],
                       ),
@@ -377,21 +485,17 @@ class _HomePageState extends State<HomePage>
                       'Record Thoughts',
                       Icons.edit_note,
                       colorScheme.primary,
-                      () {
-                        _onItemTapped(2); // Navigate to Thought Log tab
-                      },
+                      _navigateToThoughtLog,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildFeatureButton(
                       context,
-                      'CBT Training',
+                      'CBT Exercises',
                       Icons.lightbulb_outline,
                       colorScheme.secondary,
-                      () {
-                        _onItemTapped(0); // Navigate to CBT tab
-                      },
+                      _navigateToCBTExercise,
                     ),
                   ),
                 ],
@@ -407,12 +511,7 @@ class _HomePageState extends State<HomePage>
                       'View Progress',
                       Icons.insights,
                       colorScheme.tertiary,
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Progress tracking coming soon!')),
-                        );
-                      },
+                      _navigateToProgress,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -422,13 +521,7 @@ class _HomePageState extends State<HomePage>
                       'Meditation',
                       Icons.self_improvement,
                       isDark ? Colors.green.shade700 : Colors.green.shade600,
-                      () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Meditation features coming soon!')),
-                        );
-                      },
+                      _navigateToMindfulness,
                     ),
                   ),
                 ],
@@ -646,10 +739,10 @@ class _HomePageState extends State<HomePage>
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        backgroundColor: Colors.transparent,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
+            icon: const Icon(Icons.menu, color: Colors.white, size: 35),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -664,7 +757,8 @@ class _HomePageState extends State<HomePage>
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            icon: const Icon(Icons.notifications_outlined,
+                color: Colors.white, size: 35),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Notifications coming soon!')),

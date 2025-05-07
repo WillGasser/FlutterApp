@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:health_app/auth.dart';
+import 'package:provider/provider.dart';
+import '../theme.dart';
 import '../home_page.dart';
+import '../auth.dart';
 import 'create_account_screen.dart';
 import 'forgot_password_screen.dart';
+import '../widgets/auth_widgets.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,20 +15,18 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Controllers for email and password fields.
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscureText = true;
 
   @override
   void dispose() {
-    // Dispose controllers when the widget is removed.
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  /// Handles login using Firebase authentication.
   Future<void> _handleLogin() async {
     setState(() {
       _isLoading = true;
@@ -34,7 +35,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final String email = _emailController.text.trim();
     final String password = _passwordController.text;
 
-    // Check that both fields are filled.
     if (email.isEmpty || password.isEmpty) {
       _showErrorDialog('Please fill in all fields.');
       setState(() {
@@ -44,12 +44,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      // Attempt to sign in with Firebase.
       final authService = MyAuthService();
       final user = await authService.signInWithEmail(email, password);
 
       if (user != null) {
-        // If sign in is successful, navigate to the HomePage.
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -57,11 +55,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const HomePage(isNewLogin: true, type: 'returning_user')),
         );
       } else {
-        // If user is null, sign in failed.
         _showSnackBar('Login failed. Please check your credentials.');
       }
     } catch (e) {
-      // Catch and show any errors that occur during sign in.
       _showSnackBar(e.toString().replaceAll("Exception: ", ""));
     } finally {
       if (mounted) {
@@ -72,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Handles guest login (skips authentication)
   void _handleGuestLogin() {
     Navigator.pushReplacement(
       context,
@@ -82,15 +77,26 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// Shows a SnackBar with the given message.
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  void _createAccount() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
     );
   }
 
-  /// Shows an AlertDialog with the provided error message.
+  void _forgotPassword() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   void _showErrorDialog(String message) {
     if (!mounted) return;
     showDialog(
@@ -108,206 +114,148 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _CreateAccount() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CreateAccountScreen(),
-      ),
-    );
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await MyAuthService().signInWithGoogle();
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(
+              isNewLogin: true,
+              type: 'google_user',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      _showSnackBar("Google sign-in failed");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
-  void _ForgotPassword() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ForgotPasswordScreen(),
-      ),
-    );
+  Future<void> _handleAppleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await MyAuthService().signInWithApple();
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(
+              isNewLogin: true,
+              type: 'apple_user',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      _showSnackBar("Apple sign-in failed");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Welcome HOOM!",
-                      style:
-                          TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      "Log in to continue.",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 30),
+    return ExtendedAuthLayout(
+      isLoading: _isLoading,
+      title: "Welcome HOOM!",
+      subtitle: "Log in to continue.",
+      mainChildren: [
+        // Email Field
+        AuthTextField(
+          controller: _emailController,
+          hintText: 'Email',
+          prefixIcon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 12),
 
-                    // Email field
-                    TextField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+        // Password Field
+        AuthTextField(
+          controller: _passwordController,
+          hintText: 'Password',
+          prefixIcon: Icons.lock_outline,
+          obscureText: _obscureText,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureText
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
 
-                    // Password field
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+        // Login Button
+        UniversalButton(
+          text: "Login",
+          onPressed: _handleLogin,
+        ),
+        const SizedBox(height: 12),
 
-                    // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(fontSize: 18),
-                        ),
-                        child: const Text("Login"),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+        // Sign Up Button
+        UniversalButton(
+          text: "Sign Up",
+          onPressed: _createAccount,
+          isPrimary: false, // secondary button style
+        ),
+        const SizedBox(height: 16),
 
-// OR divider
-                    Row(children: <Widget>[
-                      Expanded(child: Divider(color: Colors.grey.shade400)),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text("OR"),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey.shade400)),
-                    ]),
-
-                    const SizedBox(height: 16),
-
-// Continue with Google
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: Image.asset('assets/google.png', height: 24),
-                        label: const Text("Continue with Google"),
-                        onPressed: () async {
-                          setState(() => _isLoading = true);
-                          try {
-                            final user =
-                                await MyAuthService().signInWithGoogle();
-                            if (user != null) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const HomePage(
-                                        isNewLogin: true, type: 'google_user')),
-                              );
-                            }
-                          } catch (e) {
-                            _showSnackBar("Google sign-in failed");
-                          } finally {
-                            if (mounted) setState(() => _isLoading = false);
-                          }
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-// Continue with Apple
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: Icon(Icons.apple, size: 24),
-                        label: const Text("Continue with Apple"),
-                        onPressed: () async {
-                          setState(() => _isLoading = true);
-                          try {
-                            final user =
-                                await MyAuthService().signInWithApple();
-                            if (user != null) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const HomePage(
-                                        isNewLogin: true, type: 'apple_user')),
-                              );
-                            }
-                          } catch (e) {
-                            _showSnackBar("Apple sign-in failed");
-                          } finally {
-                            if (mounted) setState(() => _isLoading = false);
-                          }
-                        },
-                      ),
-                    ),
-
-                    // Create Account & Forgot Password buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: _CreateAccount,
-                          child: const Text(
-                            "Create Account",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            '|',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: _ForgotPassword,
-                          child: const Text(
-                            "Forgot Password?",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Guest Login button
-                    TextButton(
-                      onPressed: _handleGuestLogin,
-                      child: const Text(
-                        "Continue as Guest",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ],
+        // Forgot / Guest Row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: TextButton(
+                onPressed: _forgotPassword,
+                child: Text(
+                  "Forgot Password?",
+                  style: TextStyle(fontSize: 14), // smaller font size
                 ),
               ),
             ),
+            Flexible(
+              child: TextButton(
+                onPressed: _handleGuestLogin,
+                child: Text(
+                  "Continue as Guest",
+                  style: TextStyle(fontSize: 14), // smaller font size
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+      divider: const OrDivider(),
+      socialLoginChildren: [
+        // Google Button
+        SocialLoginButton(
+          text: "Continue with Google",
+          icon: Image.asset('assets/google.png', height: 20),
+          onPressed: _handleGoogleSignIn,
+        ),
+        const SizedBox(height: 12),
+
+        // Apple Button
+        SocialLoginButton(
+          text: "Continue with Apple",
+          icon: Icon(Icons.apple, size: 20),
+          onPressed: _handleAppleSignIn,
+        ),
+      ],
     );
   }
 }

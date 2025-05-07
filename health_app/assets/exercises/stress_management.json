@@ -1,0 +1,100 @@
+{
+    "id": "sm001",
+    "title": "Stress Management Techniques",
+    "description": "Learn and practice effective strategies to manage stress using CBT principles",
+    "type": "stress_management",
+    "durationMinutes": 20,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "scale",
+            "prompt": "Rate your current stress level:",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very relaxed",
+            "maxLabel": "Extremely stressed"
+        },
+        {
+            "id": "q2",
+            "type": "text_response",
+            "prompt": "Describe a current situation that's causing you stress:",
+            "placeholder": "Example: Upcoming work presentation, family conflict..."
+        },
+        {
+            "id": "q3",
+            "type": "multiple_choice",
+            "prompt": "How does stress typically manifest in your body?",
+            "options": [
+                "Muscle tension",
+                "Rapid heartbeat",
+                "Difficulty sleeping",
+                "Digestive issues",
+                "Headaches"
+            ]
+        },
+        {
+            "id": "q4",
+            "type": "text_response",
+            "prompt": "What thoughts go through your mind when you're stressed?",
+            "placeholder": "Example: I'll never get everything done, I'm going to fail..."
+        },
+        {
+            "id": "q5",
+            "type": "multiple_choice",
+            "prompt": "Which unhelpful coping strategy do you most often use when stressed?",
+            "options": [
+                "Procrastination",
+                "Stress eating",
+                "Social withdrawal",
+                "Excessive worrying",
+                "Overworking"
+            ]
+        },
+        {
+            "id": "q6",
+            "type": "true_false",
+            "prompt": "Some stress can be beneficial and motivating.",
+            "correctAnswer": true
+        },
+        {
+            "id": "q7",
+            "type": "multiple_choice",
+            "prompt": "Which stress management technique would you like to try first?",
+            "options": [
+                "Progressive muscle relaxation",
+                "Deep breathing exercises",
+                "Time management strategies",
+                "Setting boundaries",
+                "Breaking tasks into smaller steps"
+            ]
+        },
+        {
+            "id": "q8",
+            "type": "text_response",
+            "prompt": "Create a specific plan for implementing your chosen technique:",
+            "placeholder": "Example: I will practice deep breathing for 5 minutes every morning..."
+        },
+        {
+            "id": "q9",
+            "type": "multiple_choice",
+            "prompt": "What's a more balanced way to view stressful situations?",
+            "options": [
+                "This is challenging but manageable",
+                "I can learn from this experience",
+                "I've handled similar situations before",
+                "I can ask for help if needed",
+                "All of the above"
+            ],
+            "correctAnswer": 4
+        },
+        {
+            "id": "q10",
+            "type": "scale",
+            "prompt": "After completing this exercise, rate your stress level again:",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very relaxed",
+            "maxLabel": "Extremely stressed"
+        }
+    ]
+}

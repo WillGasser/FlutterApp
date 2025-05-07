@@ -75,6 +75,13 @@ flutter:
     - assets/exercises/identifying_cognitive_distortions.json
     - assets/exercises/managing_anxiety.json
     - assets/exercises/behavior_activation.json
+    - assets/exercises/cbt_basics.json
+    - assets/exercises/thought_record.json
+    - assets/exercises/challenging_beliefs.json
+    - assets/exercises/mindfulness_exercise.json
+    - assets/exercises/self_compassion.json
+    - assets/exercises/stress_management.json
+    - assets/images/cbt_triangle.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

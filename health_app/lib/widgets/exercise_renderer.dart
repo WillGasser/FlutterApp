@@ -240,6 +240,8 @@ class _ExerciseRendererState extends State<ExerciseRenderer> {
         TextField(
           controller: textController,
           maxLines: 4,
+          // Add explicit text direction to fix backwards text issue
+          textDirection: TextDirection.ltr,
           decoration: InputDecoration(
             hintText: question.placeholder,
             border: const OutlineInputBorder(),
@@ -343,6 +345,8 @@ class _ExerciseRendererState extends State<ExerciseRenderer> {
         TextField(
           controller: textController,
           maxLines: 4,
+          // Add explicit text direction to fix backwards text issue
+          textDirection: TextDirection.ltr,
           decoration: InputDecoration(
             hintText: question.placeholder,
             border: const OutlineInputBorder(),

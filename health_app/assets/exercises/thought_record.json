@@ -1,0 +1,90 @@
+{
+    "id": "tr001",
+    "title": "CBT Thought Record",
+    "description": "Learn to identify and analyze your thoughts using a structured thought record",
+    "type": "thought_record",
+    "durationMinutes": 20,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "text_response",
+            "prompt": "Describe a recent situation that triggered uncomfortable emotions:",
+            "placeholder": "Example: During a team meeting, my suggestion was rejected..."
+        },
+        {
+            "id": "q2",
+            "type": "multiple_choice",
+            "prompt": "What was your primary emotion in this situation?",
+            "options": [
+                "Anxiety",
+                "Sadness",
+                "Anger",
+                "Shame/Embarrassment",
+                "Guilt",
+                "Other (specify in next question)"
+            ]
+        },
+        {
+            "id": "q3",
+            "type": "scale",
+            "prompt": "Rate the intensity of your emotion (1-10):",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very mild",
+            "maxLabel": "Very intense"
+        },
+        {
+            "id": "q4",
+            "type": "text_response",
+            "prompt": "What thoughts went through your mind in this situation?",
+            "placeholder": "Example: Everyone thinks my ideas are stupid. I shouldn't speak up anymore."
+        },
+        {
+            "id": "q5",
+            "type": "multiple_choice",
+            "prompt": "Did you notice any distorted thinking patterns in your thoughts?",
+            "options": [
+                "All-or-nothing thinking (black and white thinking)",
+                "Overgeneralization (applying one experience to all situations)",
+                "Mental filtering (focusing only on negatives)",
+                "Jumping to conclusions",
+                "Catastrophizing (expecting the worst)",
+                "Personalization (blaming yourself excessively)",
+                "Not sure"
+            ]
+        },
+        {
+            "id": "q6",
+            "type": "text_response",
+            "prompt": "What evidence supports your thoughts?",
+            "placeholder": "Example: My idea was rejected and someone sighed when I was speaking."
+        },
+        {
+            "id": "q7",
+            "type": "text_response",
+            "prompt": "What evidence contradicts your thoughts?",
+            "placeholder": "Example: People have praised my ideas in the past. The team was stressed about the deadline."
+        },
+        {
+            "id": "q8",
+            "type": "text_response",
+            "prompt": "What would you tell a friend who had the same thoughts in this situation?",
+            "placeholder": "Example: One rejected idea doesn't mean all your ideas are bad. The rejection wasn't personal."
+        },
+        {
+            "id": "q9",
+            "type": "text_response",
+            "prompt": "Write a more balanced alternative thought:",
+            "placeholder": "Example: My idea wasn't right for this particular project, but that doesn't mean I don't have valuable contributions."
+        },
+        {
+            "id": "q10",
+            "type": "scale",
+            "prompt": "After writing your balanced thought, rate your emotion again (1-10):",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very mild",
+            "maxLabel": "Very intense"
+        }
+    ]
+}

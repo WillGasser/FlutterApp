@@ -1,0 +1,87 @@
+{
+    "id": "mf001",
+    "title": "Mindfulness for Stress Reduction",
+    "description": "Learn basic mindfulness techniques to reduce stress and increase awareness",
+    "type": "mindfulness",
+    "durationMinutes": 15,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "scale",
+            "prompt": "Before we begin, rate your current stress level:",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very calm",
+            "maxLabel": "Very stressed"
+        },
+        {
+            "id": "q2",
+            "type": "text_response",
+            "prompt": "Take a moment to notice your surroundings. List 3 things you can see right now:",
+            "placeholder": "Example: The blue wall, my coffee mug, a plant"
+        },
+        {
+            "id": "q3",
+            "type": "text_response",
+            "prompt": "Now, notice 2 things you can hear:",
+            "placeholder": "Example: The hum of the air conditioner, birds outside"
+        },
+        {
+            "id": "q4",
+            "type": "text_response",
+            "prompt": "Notice 1 thing you can feel (a physical sensation):",
+            "placeholder": "Example: The texture of my clothes against my skin"
+        },
+        {
+            "id": "q5",
+            "type": "true_false",
+            "prompt": "Take three deep breaths, inhaling for 4 counts and exhaling for 6 counts. Did you notice any change in how your body feels?",
+            "correctAnswer": null
+        },
+        {
+            "id": "q6",
+            "type": "multiple_choice",
+            "prompt": "When practicing mindfulness, what should you do with thoughts that arise?",
+            "options": [
+                "Try to push them away forcefully",
+                "Judge them as good or bad thoughts",
+                "Notice them without judgment and let them pass",
+                "Analyze each thought in detail"
+            ],
+            "correctAnswer": 2
+        },
+        {
+            "id": "q7",
+            "type": "text_response",
+            "prompt": "Focus on your breathing for 30 seconds. Describe what you noticed:",
+            "placeholder": "Example: I noticed my chest rising and falling. My mind wandered twice."
+        },
+        {
+            "id": "q8",
+            "type": "multiple_choice",
+            "prompt": "Which of these is NOT a benefit of regular mindfulness practice?",
+            "options": [
+                "Reduced stress and anxiety",
+                "Improved focus and concentration",
+                "Elimination of all negative thoughts permanently",
+                "Better emotional regulation"
+            ],
+            "correctAnswer": 2
+        },
+        {
+            "id": "q9",
+            "type": "text_response",
+            "prompt": "Think of one daily activity you could practice mindfully (with full attention):",
+            "placeholder": "Example: Brushing my teeth, drinking my morning coffee, walking to work"
+        },
+        {
+            "id": "q10",
+            "type": "scale",
+            "prompt": "After completing this exercise, rate your stress level again:",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very calm",
+            "maxLabel": "Very stressed"
+        }
+    ]
+}

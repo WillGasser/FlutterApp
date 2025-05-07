@@ -1,0 +1,81 @@
+{
+    "id": "cb001",
+    "title": "Challenging Negative Core Beliefs",
+    "description": "Identify and challenge deeper core beliefs that influence your thoughts and feelings",
+    "type": "core_beliefs",
+    "durationMinutes": 25,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "text_response",
+            "prompt": "List a recurring negative thought that you experience frequently:",
+            "placeholder": "Example: I'm going to fail. Nobody likes me. I can't handle this."
+        },
+        {
+            "id": "q2",
+            "type": "text_response",
+            "prompt": "If this thought were 100% true, what would it mean about you?",
+            "placeholder": "Example: It would mean I'm incompetent."
+        },
+        {
+            "id": "q3",
+            "type": "text_response",
+            "prompt": "And if that were true, what would that say about you as a person?",
+            "placeholder": "Example: It would mean I'm worthless or inadequate."
+        },
+        {
+            "id": "q4",
+            "type": "multiple_choice",
+            "prompt": "Which category does your core belief fall into?",
+            "options": [
+                "Lovability (e.g., I'm unlovable, I'll always be alone)",
+                "Worth/Value (e.g., I'm worthless, I don't deserve good things)",
+                "Competence (e.g., I'm incompetent, I can't do anything right)",
+                "Safety/Vulnerability (e.g., I'm always in danger, The world is unsafe)",
+                "Other (specify in next question)"
+            ]
+        },
+        {
+            "id": "q5",
+            "type": "scale",
+            "prompt": "How strongly do you believe this core belief (1-10)?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Don't believe it",
+            "maxLabel": "Completely believe it"
+        },
+        {
+            "id": "q6",
+            "type": "text_response",
+            "prompt": "When did you first start believing this about yourself? Can you identify early experiences that might have contributed to this belief?",
+            "placeholder": "Example: When I was criticized a lot as a child. When I failed at something important."
+        },
+        {
+            "id": "q7",
+            "type": "text_response",
+            "prompt": "What evidence contradicts this core belief?",
+            "placeholder": "Example: Times I've succeeded. People who care about me. Compliments I've received."
+        },
+        {
+            "id": "q8",
+            "type": "text_response",
+            "prompt": "How might this belief be overgeneralized or extreme?",
+            "placeholder": "Example: Using words like 'always,' 'never,' or applying one area of life to all areas."
+        },
+        {
+            "id": "q9",
+            "type": "text_response",
+            "prompt": "Write a more balanced, alternative core belief:",
+            "placeholder": "Example: I have strengths and weaknesses like everyone else. I am worthy of respect and care."
+        },
+        {
+            "id": "q10",
+            "type": "scale",
+            "prompt": "After writing your balanced belief, how strongly do you believe your original negative core belief now (1-10)?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Don't believe it",
+            "maxLabel": "Completely believe it"
+        }
+    ]
+}

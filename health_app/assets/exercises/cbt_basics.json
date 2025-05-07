@@ -1,0 +1,102 @@
+{
+    "id": "cbt001",
+    "title": "Introduction to CBT Concepts",
+    "description": "Learn the foundational concepts of Cognitive Behavioral Therapy (CBT)",
+    "type": "cbt_basics",
+    "durationMinutes": 15,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "multiple_choice",
+            "prompt": "What does CBT stand for?",
+            "options": [
+                "Cognitive Behavioral Therapy",
+                "Clinical Behavioral Treatment",
+                "Cognitive Brain Training",
+                "Clinical Brain Therapy"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q2",
+            "type": "true_false",
+            "prompt": "CBT focuses on how our thoughts, feelings, and behaviors are interconnected.",
+            "correctAnswer": true
+        },
+        {
+            "id": "q3",
+            "type": "multiple_choice",
+            "prompt": "Which of these is a key principle of CBT?",
+            "options": [
+                "Our thoughts directly influence how we feel and behave",
+                "Our past determines our future and cannot be changed",
+                "Mental health issues cannot be effectively treated without medication",
+                "Therapy should focus only on childhood experiences"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q4",
+            "type": "text_response",
+            "prompt": "Describe a situation where you noticed your thoughts affecting your feelings or behavior:",
+            "placeholder": "Example: When I thought I would fail the test, I felt anxious and couldn't focus on studying..."
+        },
+        {
+            "id": "q5",
+            "type": "multiple_choice",
+            "prompt": "The CBT model proposes that these three elements influence each other:",
+            "options": [
+                "Thoughts, Feelings, Behaviors",
+                "Past, Present, Future",
+                "Childhood, Adolescence, Adulthood",
+                "Mind, Body, Spirit"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q6",
+            "type": "multiple_choice",
+            "prompt": "Which of these is NOT a common goal of CBT?",
+            "options": [
+                "Uncovering repressed childhood memories",
+                "Identifying unhelpful thinking patterns",
+                "Learning coping strategies",
+                "Changing negative behavior patterns"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q7",
+            "type": "scale",
+            "prompt": "How comfortable are you with the concept that your thoughts influence your feelings?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Not comfortable",
+            "maxLabel": "Very comfortable"
+        },
+        {
+            "id": "q8",
+            "type": "text_response",
+            "prompt": "What do you hope to learn or achieve through CBT?",
+            "placeholder": "Example: I want to manage my anxiety better and learn how to challenge negative thoughts..."
+        },
+        {
+            "id": "q9",
+            "type": "multiple_choice",
+            "prompt": "CBT is considered what type of therapy?",
+            "options": [
+                "Evidence-based and structured",
+                "Purely emotional and unstructured",
+                "Passive and observation-focused",
+                "Exclusively medication-based"
+            ],
+            "correctAnswer": 0
+        },
+        {
+            "id": "q10",
+            "type": "true_false",
+            "prompt": "CBT typically focuses more on present concerns than on your past history.",
+            "correctAnswer": true
+        }
+    ]
+}

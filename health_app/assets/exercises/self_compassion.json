@@ -1,0 +1,87 @@
+{
+    "id": "sc001",
+    "title": "Developing Self-Compassion",
+    "description": "Learn to treat yourself with the same kindness you would offer to a good friend",
+    "type": "self_compassion",
+    "durationMinutes": 15,
+    "questions": [
+        {
+            "id": "q1",
+            "type": "text_response",
+            "prompt": "Describe a situation where you've been self-critical recently:",
+            "placeholder": "Example: I made a mistake at work and called myself stupid"
+        },
+        {
+            "id": "q2",
+            "type": "text_response",
+            "prompt": "What exactly did you say to yourself in this situation?",
+            "placeholder": "Example: I can't believe I did that. I'm so incompetent."
+        },
+        {
+            "id": "q3",
+            "type": "text_response",
+            "prompt": "Now imagine a good friend came to you with the exact same situation. What would you say to them?",
+            "placeholder": "Example: Everyone makes mistakes sometimes. One error doesn't define your abilities."
+        },
+        {
+            "id": "q4",
+            "type": "multiple_choice",
+            "prompt": "Notice the difference between how you spoke to yourself and how you would speak to a friend. Why do you think this difference exists?",
+            "options": [
+                "I hold myself to higher standards than others",
+                "I've been taught that self-criticism motivates improvement",
+                "I don't believe I deserve the same kindness I give others",
+                "I never realized how differently I treat myself",
+                "Other (specify in next question)"
+            ]
+        },
+        {
+            "id": "q5",
+            "type": "scale",
+            "prompt": "How difficult is it for you to be kind to yourself when you struggle or fail?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Very easy",
+            "maxLabel": "Very difficult"
+        },
+        {
+            "id": "q6",
+            "type": "true_false",
+            "prompt": "Self-compassion means making excuses for mistakes or avoiding responsibility.",
+            "correctAnswer": false
+        },
+        {
+            "id": "q7",
+            "type": "text_response",
+            "prompt": "Write a compassionate message to yourself about the situation you described earlier:",
+            "placeholder": "Example: I'm human and making mistakes is part of learning. I can acknowledge this error while still being kind to myself."
+        },
+        {
+            "id": "q8",
+            "type": "multiple_choice",
+            "prompt": "Which is a component of self-compassion according to Dr. Kristin Neff's research?",
+            "options": [
+                "Self-indulgence (giving yourself whatever you want)",
+                "Common humanity (recognizing that suffering is part of shared human experience)",
+                "Self-improvement (constantly working to fix your flaws)",
+                "Self-isolation (handling problems on your own)"
+            ],
+            "correctAnswer": 1
+        },
+        {
+            "id": "q9",
+            "type": "text_response",
+            "prompt": "Think of a small, specific way you could show yourself kindness today:",
+            "placeholder": "Example: Taking a short break, preparing a nice meal, speaking to myself gently"
+        },
+        {
+            "id": "q10",
+            "type": "scale",
+            "prompt": "After completing this exercise, how valuable do you think self-compassion could be for your wellbeing?",
+            "min": 1,
+            "max": 10,
+            "minLabel": "Not valuable",
+            "maxLabel": "Extremely valuable"
+        }
+    ]
+}
