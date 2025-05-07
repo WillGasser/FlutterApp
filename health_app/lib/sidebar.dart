@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'screens/profile_screen.dart';
-import 'screens/CBT_Training.dart';
-import 'screens/thought_log.dart';
-import 'screens/my_journey/my_journey_screen.dart';
 import 'theme.dart';
+import 'home_page.dart';
 
 class SideBar extends StatelessWidget {
   const SideBar({Key? key}) : super(key: key);
@@ -19,15 +17,15 @@ class SideBar extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // 获取屏幕宽度，用于计算侧边栏宽度
+    // Get the screen width for calculating the drawer width
     final screenWidth = MediaQuery.of(context).size.width;
     final drawerWidth = screenWidth * 0.75;
 
-    // 创建菜单项列表 - 注意：移除了Home选项
+    // Create menu items list
     final List<Widget> menuItems = [
-      // Account 标题
+      // Account title
       Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4), // 减少了垂直间距
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
         child: Text(
           "Account",
           style: TextStyle(
@@ -53,9 +51,9 @@ class SideBar extends StatelessWidget {
         },
       ),
 
-      // Activity 标题
+      // Activity title
       Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4), // 减少了垂直间距
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
         child: Text(
           "Activity",
           style: TextStyle(
@@ -71,59 +69,82 @@ class SideBar extends StatelessWidget {
         '3min CBT Training',
         Icons.lightbulb_outline,
         () {
+          // Close the drawer first
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CBTScreen(),
-            ),
-          );
+
+          // Navigate using the bottom bar navigation
+          final HomePageState? homePageState =
+              context.findAncestorStateOfType<HomePageState>();
+          if (homePageState != null) {
+            homePageState.onItemTapped(0); // 0 is the index for CBT
+          } else {
+            // Fallback if can't find HomePage state
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const HomePage(isNewLogin: false, type: 'returning_user'),
+              ),
+            );
+          }
         },
       ),
+
       _buildMenuItem(
         context,
         '1min Journal Writing',
         Icons.edit_outlined,
         () {
+          // Close the drawer first
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ThoughtLogScreen(),
-            ),
-          );
+
+          // Navigate using the bottom bar navigation
+          final HomePageState? homePageState =
+              context.findAncestorStateOfType<HomePageState>();
+          if (homePageState != null) {
+            homePageState.onItemTapped(2); // 2 is the index for Thought Log
+          } else {
+            // Fallback if can't find HomePage state
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const HomePage(isNewLogin: false, type: 'returning_user'),
+              ),
+            );
+          }
         },
       ),
+
       _buildMenuItem(
         context,
         'Your Data',
         Icons.bar_chart,
         () {
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const MyJourneyScreen(),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Your data page coming soon!"),
             ),
           );
         },
       ),
+
       _buildMenuItem(
         context,
         'Your Badges',
-        //Icons.star_outline,
         Icons.military_tech,
         () {
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CBTScreen(initialTabIndex: 2),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Your badges page coming soon!"),
             ),
           );
         },
       ),
-      // 移动Logout按钮到Your Badges下面
+
+      // Logout button
       _buildMenuItem(
         context,
         'Logout',
@@ -153,7 +174,7 @@ class SideBar extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // 顶部用户信息区域
+              // Top user info area
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 width: double.infinity,
@@ -164,7 +185,7 @@ class SideBar extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 用户头像和欢迎信息
+                        // User avatar and welcome info
                         Row(
                           children: [
                             CircleAvatar(
@@ -214,18 +235,16 @@ class SideBar extends StatelessWidget {
                           ],
                         ),
 
-                        // 关闭按钮 - 使用primaryContainer作为背景色
+                        // Close button
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            // 使用与欢迎卡片相同的背景色
                             color:
-                                colorScheme.primaryContainer?.withOpacity(0.7),
+                                colorScheme.primaryContainer.withOpacity(0.7),
                           ),
                           child: IconButton(
                             icon: Icon(
                               Icons.close,
-                              // 图标颜色使用primaryContainer对应的前景色
                               color: colorScheme.onPrimaryContainer,
                               size: 24,
                             ),
@@ -238,9 +257,9 @@ class SideBar extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 16), // 减少垂直间距
+                    const SizedBox(height: 16),
 
-                    // 主题切换部分
+                    // Theme switcher
                     Container(
                       decoration: BoxDecoration(
                         color: isDarkMode ? Color(0xFF353530) : Colors.white,
@@ -256,7 +275,7 @@ class SideBar extends StatelessWidget {
                       padding: EdgeInsets.all(4),
                       child: Row(
                         children: [
-                          // 浅色主题按钮
+                          // Light theme button
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -300,7 +319,7 @@ class SideBar extends StatelessWidget {
                             ),
                           ),
 
-                          // 深色主题按钮
+                          // Dark theme button
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
@@ -350,18 +369,16 @@ class SideBar extends StatelessWidget {
                 ),
               ),
 
-              // 菜单项列表
+              // Menu items list
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 10), // 减少顶部间距
+                  padding: const EdgeInsets.only(top: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: menuItems,
                   ),
                 ),
               ),
-
-              // 移除底部的登出按钮，因为已经添加到菜单项列表中了
             ],
           ),
         ),
@@ -369,7 +386,7 @@ class SideBar extends StatelessWidget {
     );
   }
 
-  // 构建菜单项的帮助方法
+  // Helper method to build menu items
   Widget _buildMenuItem(
     BuildContext context,
     String title,
@@ -380,8 +397,7 @@ class SideBar extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return ListTile(
-      contentPadding:
-          const EdgeInsets.symmetric(vertical: 2, horizontal: 16), // 减少垂直间距
+      contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       leading: Icon(
         icon,
         size: 24,
@@ -402,8 +418,8 @@ class SideBar extends StatelessWidget {
       onTap: onTap,
       minLeadingWidth: 24,
       horizontalTitleGap: 12,
-      dense: true, // 使ListTile更加紧凑
-      visualDensity: VisualDensity(vertical: -1), // 进一步减少垂直间距
+      dense: true,
+      visualDensity: VisualDensity(vertical: -1),
     );
   }
 }
