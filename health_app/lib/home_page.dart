@@ -722,6 +722,11 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+// Partial update for the HomePage class
+// This shows just the relevant parts that need to be changed
+
+// In home_page.dart, update the build method to include a return statement:
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -767,7 +772,10 @@ class _HomePageState extends State<HomePage>
           ),
         ],
       ),
-      drawer: const SideBar(),
+      // Updated drawer with navigation callback
+      drawer: SideBar(
+        onNavigateToIndex: _onItemTapped,
+      ),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(), // Prevent swiping
